@@ -3,9 +3,12 @@ package com.order.orderservice.controller;
 import com.order.orderservice.dto.OrderRequest;
 import com.order.orderservice.dto.OrderResponse;
 import com.order.orderservice.service.OrderService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+@Slf4j
 
 @RestController            //@RestController is a Spring Boot annotation that marks a class as a REST API controller, enabling it to handle HTTP requests and return data (typically JSON) directly in the response body.
 
@@ -19,14 +22,96 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    @PostMapping                                                                     //@PostMapping is a Spring Boot annotation used to handle HTTP POST requests. It is mainly used to create or save new resources in the application.
-    public OrderResponse createOrder(@RequestBody OrderRequest request){
-                                      return orderService.createOrder(request);                                              //@RequestBody is a Spring Boot annotation used to bind the HTTP request body to a Java object. It automatically converts incoming JSON data into a Java object.
+    // -------------------- Create Order --------------------
+
+    @PostMapping
+    public ResponseEntity<OrderResponse> createOrder(@RequestBody OrderRequest request) {
+
+        log.info("Received request to create order with Order Number : {}", request.getOrderNumber());
+
+        // Call Service Layer
+
+        OrderResponse response = orderService.createOrder(request);
+
+        log.info("Order created successfully with ID : {}", response.getId());
+
+        // Return Response
+
+        return ResponseEntity.ok(response);
+
     }
+
+    // -------------------- Get All Orders --------------------
 
     @GetMapping
-    public List<OrderResponse> getAllOrders(){
-        return orderService.getAllOrders();
+    public ResponseEntity<List<OrderResponse>> getAllOrders() {
+
+        log.info("Received request to fetch all orders");
+
+        // Call Service Layer
+
+        List<OrderResponse> responses = orderService.getAllOrders();
+
+        log.info("Returning {} orders", responses.size());
+
+        // Return Response
+
+        return ResponseEntity.ok(responses);
 
     }
+
+    // -------------------- Get Order By ID --------------------
+
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderResponse> getOrderById(@PathVariable Long id) {
+
+        log.info("Received request to fetch order with ID : {}", id);
+
+        // Call Service Layer
+
+        OrderResponse response = orderService.getOrderById(id);
+
+        log.info("Successfully fetched order with ID : {}", id);
+
+        // Return Response
+
+        return ResponseEntity.ok(response);
+
+    }
+
+// -------------------- Update Order --------------------
+
+    @PutMapping("/{id}")
+    public ResponseEntity<OrderResponse> updateOrder(@PathVariable Long id,
+                                                     @RequestBody OrderRequest request) {
+
+        log.info("Received request to update order with ID : {}", id);
+
+        // Call Service Layer
+
+        OrderResponse response = orderService.updateOrder(id, request);
+
+        log.info("Successfully updated order with ID : {}", id);
+
+        // Return Response
+
+        return ResponseEntity.ok(response);
+
+    }
+
+// -------------------- Partial Update Order --------------------
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<OrderResponse> partialUpdateOrder(@PathVariable Long id,
+                                                            @RequestBody OrderRequest request) {
+
+        log.info("Received request to partially update order with ID : {}", id);
+
+        OrderResponse response = orderService.partialUpdateOrder(id, request);
+
+        log.info("Successfully partially updated order with ID : {}", id);
+
+        return ResponseEntity.ok(response);
+    }
+
 }

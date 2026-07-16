@@ -97,7 +97,28 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponse getOrderById(Long id) {
 
-        return null;
+        log.info("Received request to fetch order with Id: {}",id);
+
+        // -------------------- Step 1 : Fetch Order from Database --------------------
+
+        Order order = orderRepository.findById(id).orElseThrow(()->{
+
+            log.error("Order not found with Id : {}",id);
+
+            return new RuntimeException("Order not found with Id :"+id);
+
+        });
+        log.info("Order found with Id : {}",id);
+
+        // -------------------- Step 2 : Convert Entity to Response DTO --------------------
+
+        OrderResponse response = mapToResponse(order);
+
+        // -------------------- Step 3 : Return Response DTO --------------------
+
+        log.info("Returning Order Response for ID : {}", id);
+
+        return response;
     }
 
     // -------------------- Update Order --------------------
@@ -105,7 +126,33 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponse updateOrder(Long id, OrderRequest request) {
 
-        return null;
+        log.info("Updating order with ID : {}",id);
+
+        // Step 1 : Find existing order
+
+        Order order = orderRepository.findById(id).orElseThrow(()->{log.error("Order not found with ID : {}",id);
+        return new RuntimeException("Order not Found with ID :"+ id);
+        });
+
+        // Step 2 : Update order fields
+        order.setOrderNumber(request.getOrderNumber());
+        order.setCustomerId(request.getCustomerId());
+        order.setProductId(request.getProductId());
+        order.setQuantity(request.getQuantity());
+        order.setPrice(request.getPrice());
+
+        // Step 3 : Recalculate total amount
+        order.setTotalAmount(request.getQuantity() * request.getPrice());
+
+        // Step 4 : Save updated order
+        Order updatedOrder = orderRepository.save(order);
+
+        log.info("Order updated successfully with ID : {}", updatedOrder.getId());
+
+        // Step 5 : Convert Entity to Response DTO
+        return mapToResponse(updatedOrder);
+
+
     }
 
     // -------------------- Partial Update Order --------------------
@@ -113,7 +160,47 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponse partialUpdateOrder(Long id, OrderRequest request) {
 
-        return null;
+        log.info("Partially updating order with ID : {}", id);
+
+        // Step 1 : Find existing order
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.error("Order not found with ID : {}", id);
+                    return new RuntimeException("Order not found with ID : " + id);
+                });
+
+        // Step 2 : Update only provided fields
+
+        if (request.getOrderNumber() != null) {
+            order.setOrderNumber(request.getOrderNumber());
+        }
+
+        if (request.getCustomerId() != null) {
+            order.setCustomerId(request.getCustomerId());
+        }
+
+        if (request.getProductId() != null) {
+            order.setProductId(request.getProductId());
+        }
+
+        if (request.getQuantity() != null) {
+            order.setQuantity(request.getQuantity());
+        }
+
+        if (request.getPrice() != null) {
+            order.setPrice(request.getPrice());
+        }
+
+        // Step 3 : Recalculate total amount
+        order.setTotalAmount(order.getQuantity() * order.getPrice());
+
+        // Step 4 : Save updated order
+        Order updatedOrder = orderRepository.save(order);
+
+        log.info("Order partially updated successfully with ID : {}", updatedOrder.getId());
+
+        // Step 5 : Convert Entity to Response DTO
+        return mapToResponse(updatedOrder);
     }
 
     // -------------------- Delete Order --------------------
