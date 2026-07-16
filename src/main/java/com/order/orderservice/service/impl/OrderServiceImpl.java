@@ -1,5 +1,303 @@
 package com.order.orderservice.service.impl;
 
+import com.order.orderservice.dto.OrderRequest;
+import com.order.orderservice.dto.OrderResponse;
+import com.order.orderservice.entity.Order;
+import com.order.orderservice.repository.OrderRepository;
+import com.order.orderservice.service.OrderService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class OrderServiceImpl implements OrderService {
+
+    private final OrderRepository orderRepository;
+
+    // -------------------- Create Order --------------------
+
+    @Override
+    public OrderResponse createOrder(OrderRequest request) {
+
+        log.info("Received request to create order : {}", request.getOrderNumber());
+
+        // -------------------- Step 1 : Create Order Entity --------------------
+
+        Order order = Order.builder()
+                .orderNumber(request.getOrderNumber())
+                .customerId(request.getCustomerId())
+                .productId(request.getProductId())
+                .quantity(request.getQuantity())
+                .price(request.getPrice())
+                .totalAmount(request.getTotalAmount())
+                .orderStatus(request.getOrderStatus())
+                .paymentStatus(request.getPaymentStatus())
+                .orderDate(request.getOrderDate())
+                .createdDate(LocalDateTime.now())
+                .updatedDate(LocalDateTime.now())
+                .build();
+
+        // -------------------- Step 2 : Save Entity into Database --------------------
+
+        Order savedOrder = orderRepository.save(order);
+
+        log.info("Order created successfully with ID : {}", savedOrder.getId());
+
+        // -------------------- Step 3 : Convert Entity to Response DTO --------------------
+
+        return mapToResponse(savedOrder);
+
+    }
+
+
+
+    // -------------------- Get All Orders --------------------
+
+    @Override
+    public List<OrderResponse> getAllOrders() {
+
+        log.info("Received request to fetch all orders");
+
+        // -------------------- Step 1 : Fetch All Orders from Database --------------------
+
+        List<Order> orders = orderRepository.findAll();
+
+        log.info("Fetched {} orders from database", orders.size());
+
+        // -------------------- Step 2 : Create Response DTO List --------------------
+
+        List<OrderResponse> responses = new ArrayList<>();
+
+        // -------------------- Step 3 : Convert Entity List to Response DTO List --------------------
+
+        for (Order order : orders) {
+
+            responses.add(mapToResponse(order));
+
+        }
+
+        // -------------------- Step 4 : Return Response DTO List --------------------
+
+        log.info("Returning {} orders", responses.size());
+
+        return responses;
+
+    }
+
+
+
+    // -------------------- Get Order By Id --------------------
+
+    @Override
+    public OrderResponse getOrderById(Long id) {
+
+        return null;
+    }
+
+    // -------------------- Update Order --------------------
+
+    @Override
+    public OrderResponse updateOrder(Long id, OrderRequest request) {
+
+        return null;
+    }
+
+    // -------------------- Partial Update Order --------------------
+
+    @Override
+    public OrderResponse partialUpdateOrder(Long id, OrderRequest request) {
+
+        return null;
+    }
+
+    // -------------------- Delete Order --------------------
+
+    @Override
+    public String deleteOrder(Long id) {
+
+        return "";
+    }
+
+
+    // -------------------- Entity to Response DTO Mapping --------------------
+
+    private OrderResponse mapToResponse(Order order) {
+
+        return OrderResponse.builder()
+                .id(order.getId())
+                .orderNumber(order.getOrderNumber())
+                .customerId(order.getCustomerId())
+                .productId(order.getProductId())
+                .quantity(order.getQuantity())
+                .price(order.getPrice())
+                .totalAmount(order.getTotalAmount())
+                .orderStatus(order.getOrderStatus())
+                .paymentStatus(order.getPaymentStatus())
+                .orderDate(order.getOrderDate())
+                .createdDate(order.getCreatedDate())
+                .updatedDate(order.getUpdatedDate())
+                .build();
+
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+package com.order.orderservice.service.impl;
+
 // OrderServiceImpl (Business Logic Layer) We Provide  Business Logics Here
 
 import com.order.orderservice.dto.OrderRequest;
@@ -10,9 +308,12 @@ import com.order.orderservice.service.OrderService;
 import org.springframework.stereotype.Service;
 
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 @Service            //@Service -->tells Spring that this class contains business logic and should be managed as a Spring Bean.
 public class OrderServiceImpl implements OrderService {
+
     private final OrderRepository orderRepository;
 
     public OrderServiceImpl(OrderRepository orderRepository){
@@ -20,17 +321,22 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-  /*
+  */
+/*
   * @Override //"This method is implementing (or overriding)
   *  an existing method from a parent class or interface."
-  * */
+  * *//*
+
 
     // -------------------- CreateOrder --------------------
 
-    @Override
+    @Override   //This method is implementing the method declared in the OrderService interface.
     public OrderResponse createOrder(OrderRequest request) {
+        // -------------------- Step 1 : Create Order Entity --------------------
 
         Order order = new Order();
+
+        // -------------------- Step 2 : Map Request DTO to Entity --------------------
 
         order.setOrderNumber(request.getOrderNumber());
 
@@ -50,14 +356,97 @@ public class OrderServiceImpl implements OrderService {
 
         order.setOrderDate(request.getOrderDate());
 
-        return null;
+        order.setCreateDate(LocalDateTime.now());
+
+        order.setUpdateDate(LocalDateTime.now());
+
+
+        // -------------------- Step 3 : Save Entity into Database --------------------
+
+        Order savedOrder = orderRepository.save(order);    //save() stores an entity in the database.
+
+        // -------------------- Step 4 : Map Saved Entity to Response DTO --------------------
+
+        OrderResponse response = new OrderResponse();    //We created Response Object Because to send a JSON For Client ,We should never return Entity directly to the client.
+
+        response.setId(savedOrder.getId());
+
+        response.setOrderNumber(savedOrder.getOrderNumber());
+
+        response.setCustomerId(savedOrder.getCustomerId());
+
+        response.setProductId(savedOrder.getProductId());
+
+        response.setQuantity(savedOrder.getQuantity());
+
+        response.setPrice(savedOrder.getPrice());
+
+        response.setTotalAmount(savedOrder.getTotalAmount());
+
+        response.setOrderStatus(savedOrder.getOrderStatus());
+
+        response.setPaymentStatus(savedOrder.getPaymentStatus());
+
+        response.setOrderDate(savedOrder.getOrderDate());
+
+
+        // -------------------- Step 5 : Return Response DTO --------------------
+
+        return response;
     }
+
 
     // -------------------- getAllOrders --------------------
 
     @Override
-    public List<OrderResponse> getAllOrders() {
-        return List.of();
+    public List<OrderResponse> getAllOrders() {     //List<OrderResponse> 👉 This method returns multiple OrderResponse objects.
+
+        // -------------------- Step 1 : Fetch All Orders from Database --------------------
+
+        List<Order> orders = orderRepository.findAll();
+
+// -------------------- Step 2 : Create Response DTO List --------------------
+
+        List<OrderResponse> responses = new ArrayList<>();
+
+// -------------------- Step 3 : Convert Entity List to Response DTO List --------------------
+
+        for (Order order : orders) {
+
+            OrderResponse response = new OrderResponse();
+
+            response.setId(order.getId());
+
+            response.setOrderNumber(order.getOrderNumber());
+
+            response.setCustomerId(order.getCustomerId());
+
+            response.setProductId(order.getProductId());
+
+            response.setQuantity(order.getQuantity());
+
+            response.setPrice(order.getPrice());
+
+            response.setTotalAmount(order.getTotalAmount());
+
+            response.setOrderStatus(order.getOrderStatus());
+
+            response.setPaymentStatus(order.getPaymentStatus());
+
+            response.setOrderDate(order.getOrderDate());
+
+            response.setCreateDate(order.getCreateDate());
+
+            response.setUpdateDate(order.getUpdateDate());
+
+            responses.add(response);
+        }
+
+// -------------------- Step 4 : Return Response DTO List --------------------
+
+        return responses;
+
+
     }
 
     // -------------------- getOrderById --------------------
@@ -91,3 +480,4 @@ public class OrderServiceImpl implements OrderService {
         return "";
     }
 }
+*/

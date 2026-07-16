@@ -2,16 +2,24 @@ package com.order.orderservice.dto;
 
 import com.order.orderservice.enums.OrderStatus;
 import com.order.orderservice.enums.PaymentStatus;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class OrderResponse {
 
     private Long id;
 
-    private String orderName;
+    private String orderNumber;
 
     private Long customerId;
 
@@ -29,9 +37,8 @@ public class OrderResponse {
 
     private LocalDateTime orderDate;
 
-    private LocalDateTime createDate;
+    private LocalDateTime createdDate;
 
-    private LocalDateTime updateDate;
-
+    private LocalDateTime updatedDate;
 
 }

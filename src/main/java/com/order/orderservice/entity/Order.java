@@ -48,7 +48,10 @@ public class Order {
     @Column(name ="order_date",nullable = false)
     private LocalDateTime orderDate;
 
-    @Column(name="updated_date")
-    private  LocalDateTime updateDate;
+    @Column(name = "created_date")
+    private LocalDateTime createdDate;
+
+    @Column(name = "updated_date")
+    private LocalDateTime updatedDate;
 
 }
