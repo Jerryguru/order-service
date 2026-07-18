@@ -79,6 +79,7 @@ public class OrderController {
 
     }
 
+
 // -------------------- Update Order --------------------
 
     @PutMapping("/{id}")
@@ -113,5 +114,38 @@ public class OrderController {
 
         return ResponseEntity.ok(response);
     }
+
+    // -------------------- Delete Order --------------------
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteOrder(@PathVariable Long id){
+
+        log.info("Recevied request to delete order with ID : {}",id);
+
+        orderService.deleteOrder(id);
+
+        log.info("Sucessfulley deleted order with Id :",id);
+
+        return ResponseEntity.ok("Order deleted sucessfully.");
+    }
+
+
+    // ==========================
+    // Get Order By Order Number
+    // ==========================
+
+    @GetMapping("/order-number/{orderNumber}")
+    public ResponseEntity<OrderResponse> getOrderByOrderNumber(@PathVariable String orderNumber) {
+
+        log.info("Received request to fetch order with order number : {}", orderNumber);
+
+        OrderResponse response = orderService.getOrderByOrderNumber(orderNumber);
+
+        log.info("Successfully fetched order with order number : {}", orderNumber);
+
+        return ResponseEntity.ok(response);
+
+    }
+
 
 }

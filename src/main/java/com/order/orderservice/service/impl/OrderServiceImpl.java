@@ -3,6 +3,7 @@ package com.order.orderservice.service.impl;
 import com.order.orderservice.dto.OrderRequest;
 import com.order.orderservice.dto.OrderResponse;
 import com.order.orderservice.entity.Order;
+import com.order.orderservice.exception.OrderNotFoundException;
 import com.order.orderservice.repository.OrderRepository;
 import com.order.orderservice.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.springframework.context.annotation.ConfigurationClassUtils.getOrder;
 
 @Service
 @RequiredArgsConstructor
@@ -105,7 +108,7 @@ public class OrderServiceImpl implements OrderService {
 
             log.error("Order not found with Id : {}",id);
 
-            return new RuntimeException("Order not found with Id :"+id);
+            return new OrderNotFoundException("Order not found with Id :"+id);
 
         });
         log.info("Order found with Id : {}",id);
@@ -131,7 +134,7 @@ public class OrderServiceImpl implements OrderService {
         // Step 1 : Find existing order
 
         Order order = orderRepository.findById(id).orElseThrow(()->{log.error("Order not found with ID : {}",id);
-        return new RuntimeException("Order not Found with ID :"+ id);
+        return new OrderNotFoundException("Order not Found with ID :"+ id);
         });
 
         // Step 2 : Update order fields
@@ -166,7 +169,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> {
                     log.error("Order not found with ID : {}", id);
-                    return new RuntimeException("Order not found with ID : " + id);
+                    return new OrderNotFoundException("Order not found with ID : " + id);
                 });
 
         // Step 2 : Update only provided fields
@@ -206,10 +209,81 @@ public class OrderServiceImpl implements OrderService {
     // -------------------- Delete Order --------------------
 
     @Override
-    public String deleteOrder(Long id) {
+    public void deleteOrder(Long id) {
 
-        return "";
+        log.info("Deleting orderwith ID : {}",id);
+
+        // Step 1 : Find existing order
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.error("Order not found with ID : {}", id);
+                    return new OrderNotFoundException("Order not found with ID : " + id);
+                });
+
+        // Step 2 : Delete order from database
+        orderRepository.delete(order);
+
+        // Step 3 : Log successful deletion
+        log.info("Order deleted successfully with ID : {}", id);
+
+
     }
+
+
+    // ========================== CURD APIS COMPLETED HERE  ==========================
+
+
+    // ==========================
+   // Get Order By Order Number
+  // ==========================
+
+    @Override
+    public OrderResponse getOrderByOrderNumber(String orderNumber) {
+
+        log.info("Received request to fetch order with order number : {}", orderNumber);
+
+        // -------------------- Step 1 : Fetch Order from Database --------------------
+
+        Order order = orderRepository.findByOrderNumber(orderNumber).orElseThrow(() -> {
+
+                    log.error("Order not found with order number : {}", orderNumber);
+
+                    return new OrderNotFoundException("Order not found with order number : " + orderNumber);
+
+                });
+
+        log.info("Order found with order number : {}", orderNumber);
+
+        // -------------------- Step 2 : Convert Entity to Response DTO --------------------
+
+        OrderResponse response = mapToResponse(order);
+
+        // -------------------- Step 3 : Return Response DTO --------------------
+
+        log.info("Returning Order Response for Order Number : {}", orderNumber);
+
+        return response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     // -------------------- Entity to Response DTO Mapping --------------------
