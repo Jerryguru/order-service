@@ -33,4 +33,11 @@ public interface OrderService {
 
     OrderResponse getOrderByOrderNumber(String orderNumber);
 
+
+    // ==========================
+    // Get Orders By Customer ID
+    // ==========================
+
+    List<OrderResponse> getOrdersByCustomerId(Long customerId);
+
 }

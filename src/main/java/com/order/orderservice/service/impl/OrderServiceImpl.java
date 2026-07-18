@@ -267,6 +267,42 @@ public class OrderServiceImpl implements OrderService {
 
 
 
+          // ==========================
+         // Get Orders By Customer ID
+    // ==========================
+
+    @Override
+    public List<OrderResponse> getOrdersByCustomerId(Long customerId) {
+
+        log.info("Received request to fetch orders with customer id : {}", customerId);
+
+        // -------------------- Step 1 : Fetch Orders from Database --------------------
+
+        List<Order> orders = orderRepository.findByCustomerId(customerId);
+
+        if (orders.isEmpty()) {
+
+            log.error("No orders found with customer id : {}", customerId);
+
+            throw new OrderNotFoundException(
+                    "No orders found with customer id : " + customerId);
+
+        }
+
+        log.info("Successfully fetched {} orders with customer id : {}", orders.size(), customerId);
+
+        // -------------------- Step 2 : Convert Entity List to Response DTO List --------------------
+
+        List<OrderResponse> response = orders.stream().map(this::mapToResponse).toList();
+
+        // -------------------- Step 3 : Return Response DTO List --------------------
+
+        log.info("Returning {} orders for customer id : {}", response.size(), customerId);
+
+        return response;
+    }
+
+
 
 
 

@@ -130,18 +130,45 @@ public class OrderController {
     }
 
 
-    // ==========================
-    // Get Order By Order Number
-    // ==========================
+// ==========================
+// Get Order By Order Number
+// ==========================
 
     @GetMapping("/order-number/{orderNumber}")
     public ResponseEntity<OrderResponse> getOrderByOrderNumber(@PathVariable String orderNumber) {
 
         log.info("Received request to fetch order with order number : {}", orderNumber);
 
+        // -------------------- Step 1 : Call Service Layer --------------------
+
         OrderResponse response = orderService.getOrderByOrderNumber(orderNumber);
 
         log.info("Successfully fetched order with order number : {}", orderNumber);
+
+        // -------------------- Step 2 : Return Response to Client --------------------
+
+        return ResponseEntity.ok(response);
+
+    }
+
+
+
+    // ==========================
+// Get Orders By Customer ID
+// ==========================
+
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<List<OrderResponse>> getOrdersByCustomerId(@PathVariable Long customerId) {
+
+        log.info("Received request to fetch orders with customer id : {}", customerId);
+
+        // -------------------- Step 1 : Call Service Layer --------------------
+
+        List<OrderResponse> response = orderService.getOrdersByCustomerId(customerId);
+
+        log.info("Successfully fetched {} orders with customer id : {}", response.size(), customerId);
+
+        // -------------------- Step 2 : Return Response to Client --------------------
 
         return ResponseEntity.ok(response);
 
