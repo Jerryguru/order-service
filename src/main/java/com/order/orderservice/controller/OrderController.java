@@ -152,6 +152,29 @@ public class OrderController {
     }
 
 
+    // ===========================================
+// Get Orders By Product ID
+// ===========================================
+
+    @GetMapping("/product/{productId}")
+    public ResponseEntity<List<OrderResponse>> getOrdersByProductId(
+            @PathVariable Long productId) {
+
+        // Log incoming request
+        log.info("Received request to fetch orders for product id : {}", productId);
+
+        // Call service layer
+        List<OrderResponse> response = orderService.getOrdersByProductId(productId);
+
+        // Log successful response
+        log.info("Successfully fetched {} orders for product id : {}",
+                response.size(), productId);
+
+        // Return HTTP 200 OK with response body
+        return ResponseEntity.ok(response);
+    }
+
+
 
     // ==========================
 // Get Orders By Customer ID

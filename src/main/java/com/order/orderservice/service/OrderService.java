@@ -40,4 +40,13 @@ public interface OrderService {
 
     List<OrderResponse> getOrdersByCustomerId(Long customerId);
 
+
+    // ==========================
+    // Get Orders By Product ID
+    // ==========================
+
+    List<OrderResponse> getOrdersByProductId(Long productId);
+
+
+
 }
