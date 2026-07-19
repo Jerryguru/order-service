@@ -2,6 +2,7 @@ package com.order.orderservice.service;
 
 import com.order.orderservice.dto.OrderRequest;
 import com.order.orderservice.dto.OrderResponse;
+import com.order.orderservice.enums.OrderStatus;
 
 import java.util.List;
 
@@ -46,6 +47,13 @@ public interface OrderService {
     // ==========================
 
     List<OrderResponse> getOrdersByProductId(Long productId);
+
+
+    // ==========================
+    // Get Orders By Order Status
+    // ==========================
+
+    List<OrderResponse> getOrdersByOrderStatus(OrderStatus orderStatus);
 
 
 

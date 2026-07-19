@@ -3,6 +3,7 @@ package com.order.orderservice.service.impl;
 import com.order.orderservice.dto.OrderRequest;
 import com.order.orderservice.dto.OrderResponse;
 import com.order.orderservice.entity.Order;
+import com.order.orderservice.enums.OrderStatus;
 import com.order.orderservice.exception.OrderNotFoundException;
 import com.order.orderservice.repository.OrderRepository;
 import com.order.orderservice.service.OrderService;
@@ -341,7 +342,36 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
+// ==========================
+// Get Orders By Order Status
+// ==========================
 
+    @Override
+    public List<OrderResponse> getOrdersByOrderStatus(OrderStatus orderStatus) {
+
+        log.info("Received request to fetch orders with status : {}", orderStatus);
+
+        // -------------------- Step 1 : Fetch Orders from Database --------------------
+
+        List<Order> orders = orderRepository.findByOrderStatus(orderStatus);
+
+        if (orders.isEmpty()) {
+
+            log.error("No orders found with status : {}", orderStatus);
+
+            throw new OrderNotFoundException("No orders found with status : " + orderStatus);
+        }
+
+        // -------------------- Step 2 : Convert Entity List into Response List --------------------
+
+        List<OrderResponse> responseList = orders.stream()
+                .map(this::mapToResponse)
+                .toList();
+
+        log.info("Successfully fetched {} orders with status : {}", responseList.size(), orderStatus);
+
+        return responseList;
+    }
 
 
 

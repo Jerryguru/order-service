@@ -2,6 +2,7 @@ package com.order.orderservice.controller;
 
 import com.order.orderservice.dto.OrderRequest;
 import com.order.orderservice.dto.OrderResponse;
+import com.order.orderservice.enums.OrderStatus;
 import com.order.orderservice.service.OrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -197,5 +198,29 @@ public class OrderController {
 
     }
 
+
+
+    // ==========================
+// Get Orders By Order Status
+// ==========================
+
+    @GetMapping("/status/{orderStatus}")
+    public ResponseEntity<List<OrderResponse>> getOrdersByOrderStatus(
+
+            // Read Order Status from URL Path
+            @PathVariable OrderStatus orderStatus) {
+
+        // Log incoming request
+        log.info("Received request to fetch orders with status : {}", orderStatus);
+
+        // Call Service Layer to fetch orders based on status
+        List<OrderResponse> response = orderService.getOrdersByOrderStatus(orderStatus);
+
+        // Log successful response
+        log.info("Successfully fetched orders with status : {}", orderStatus);
+
+        // Return HTTP 200 OK along with list of orders
+        return ResponseEntity.ok(response);
+    }
 
 }
