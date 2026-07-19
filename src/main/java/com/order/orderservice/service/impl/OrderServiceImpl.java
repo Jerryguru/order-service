@@ -448,6 +448,50 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
+    // ==========================
+    // Get Today's Orders
+    // ==========================
+
+    @Override
+    public List<OrderResponse> getTodayOrders() {
+
+        log.info("Received request to fetch today's orders.");
+
+        // -------------------- Step 1 : Get Today's Date --------------------
+
+        LocalDate today = LocalDate.now();
+
+        // -------------------- Step 2 : Convert Today's Date into Start and End Time --------------------
+
+        LocalDateTime startDateTime = today.atStartOfDay();
+
+        LocalDateTime endDateTime = today.atTime(LocalTime.MAX);
+
+        // -------------------- Step 3 : Fetch Today's Orders from Database --------------------
+
+        List<Order> orders = orderRepository.findByOrderDateBetween(startDateTime, endDateTime);
+
+        // -------------------- Step 4 : Check if Orders Exist --------------------
+
+        if (orders.isEmpty()) {
+
+            log.error("No orders found for today.");
+
+            throw new OrderNotFoundException("No orders found for today.");
+        }
+
+        // -------------------- Step 5 : Convert Entity List into Response DTO List --------------------
+
+        List<OrderResponse> responseList = orders.stream()
+                .map(this::mapToResponse)
+                .toList();
+
+        log.info("Successfully fetched {} today's orders.", responseList.size());
+
+        return responseList;
+    }
+
+
 
 
 

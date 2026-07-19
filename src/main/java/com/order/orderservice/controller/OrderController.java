@@ -283,4 +283,25 @@ public class OrderController {
     }
 
 
+
+    // ==========================
+    // Get Today's Orders
+    // ==========================
+
+    @GetMapping("/today")
+    public ResponseEntity<List<OrderResponse>> getTodayOrders() {
+
+        log.info("Received request to fetch today's orders.");
+
+        // -------------------- Step 1 : Call Service Layer --------------------
+
+        List<OrderResponse> response = orderService.getTodayOrders();
+
+        // -------------------- Step 2 : Return Success Response --------------------
+
+        log.info("Successfully fetched {} today's orders.", response.size());
+
+        return ResponseEntity.ok(response);
+    }
+
 }

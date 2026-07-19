@@ -51,5 +51,14 @@ public interface OrderRepository extends JpaRepository< Order,Long > {   //Order
 
     List<Order> findByOrderDateBetween(LocalDateTime startDate,
                                        LocalDateTime endDate);
+
+
+
+ /*   // ==========================
+    // Get Today's Orders
+    // ==========================
+
+    List<Order> findByOrderDateBetween(LocalDateTime startDateTime,
+                                       LocalDateTime endDateTime);*/
 }
 

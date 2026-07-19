@@ -72,4 +72,11 @@ public interface OrderService {
     List<OrderResponse> getOrdersBetweenDates(LocalDate startDate, LocalDate endDate);
 
 
+    // ==========================
+    // Get Today's Orders
+    // ==========================
+
+    List<OrderResponse> getTodayOrders();
+
+
 }
