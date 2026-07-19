@@ -4,12 +4,17 @@ import com.order.orderservice.dto.OrderRequest;
 import com.order.orderservice.dto.OrderResponse;
 import com.order.orderservice.entity.Order;
 import com.order.orderservice.enums.OrderStatus;
+import com.order.orderservice.enums.PaymentStatus;
 import com.order.orderservice.exception.OrderNotFoundException;
 import com.order.orderservice.repository.OrderRepository;
 import com.order.orderservice.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -375,10 +380,72 @@ public class OrderServiceImpl implements OrderService {
 
 
 
+    // ==========================
+    // Get Orders By Payment Status
+    // ==========================
 
+    @Override
+    public List<OrderResponse> getOrdersByPaymentStatus(PaymentStatus paymentStatus) {
 
+        log.info("Received request to fetch orders with payment status : {}", paymentStatus);
 
+        // -------------------- Step 1 : Fetch Orders from Database --------------------
 
+        List<Order> orders = orderRepository.findByPaymentStatus(paymentStatus);
+
+        if (orders.isEmpty()) {log.error("No orders found with payment status : {}", paymentStatus);
+
+            throw new OrderNotFoundException("No orders found with payment status : " + paymentStatus);
+        }
+
+        // -------------------- Step 2 : Convert Entity List into Response DTO List --------------------
+
+        List<OrderResponse> responseList = orders.stream()
+                .map(this::mapToResponse)
+                .toList();
+
+        log.info("Successfully fetched {} orders with payment status : {}", responseList.size(), paymentStatus);
+
+        return responseList;
+    }
+
+    // ==========================
+    // Get Orders Between Two Dates
+    // ==========================
+
+    @Override
+    public List<OrderResponse> getOrdersBetweenDates(LocalDate startDate, LocalDate endDate) {
+
+        log.info("Received request to fetch orders between {} and {}", startDate, endDate);
+
+        // -------------------- Step 1 : Convert LocalDate into LocalDateTime --------------------
+
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+
+        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
+
+        // -------------------- Step 2 : Fetch Orders from Database --------------------
+
+        List<Order> orders = orderRepository.findByOrderDateBetween(startDateTime, endDateTime);
+
+        // -------------------- Step 3 : Check if Orders Exist --------------------
+
+        if (orders.isEmpty()) {log.error("No orders found between {} and {}", startDate, endDate);
+
+            throw new OrderNotFoundException("No orders found between " + startDate + " and " + endDate);
+        }
+
+        // -------------------- Step 4 : Convert Entity List into Response DTO List --------------------
+
+        List<OrderResponse> responseList = orders.stream()
+                .map(this::mapToResponse)
+                .toList();
+
+        log.info("Successfully fetched {} orders between {} and {}",
+                responseList.size(), startDate, endDate);
+
+        return responseList;
+    }
 
 
 

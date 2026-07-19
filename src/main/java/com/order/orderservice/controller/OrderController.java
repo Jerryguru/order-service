@@ -3,11 +3,14 @@ package com.order.orderservice.controller;
 import com.order.orderservice.dto.OrderRequest;
 import com.order.orderservice.dto.OrderResponse;
 import com.order.orderservice.enums.OrderStatus;
+import com.order.orderservice.enums.PaymentStatus;
 import com.order.orderservice.service.OrderService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 @Slf4j
 
@@ -222,5 +225,62 @@ public class OrderController {
         // Return HTTP 200 OK along with list of orders
         return ResponseEntity.ok(response);
     }
+
+
+    // ==========================
+// Get Orders By Payment Status
+// ==========================
+
+    @GetMapping("/payment-status/{paymentStatus}")
+    public ResponseEntity<List<OrderResponse>> getOrdersByPaymentStatus(
+
+            // Read Payment Status from URL Path
+            @PathVariable PaymentStatus paymentStatus) {
+
+        // Log incoming request
+        log.info("Received request to fetch orders with payment status : {}", paymentStatus);
+
+        // Call Service Layer to fetch orders based on payment status
+        List<OrderResponse> response = orderService.getOrdersByPaymentStatus(paymentStatus);
+
+        // Log successful response
+        log.info("Successfully fetched orders with payment status : {}", paymentStatus);
+
+        // Return HTTP 200 OK along with list of orders
+        return ResponseEntity.ok(response);
+    }
+
+    // ==========================
+// Get Orders Between Two Dates
+// ==========================
+
+    @GetMapping("/date-range")
+    public ResponseEntity<List<OrderResponse>> getOrdersBetweenTwoDates(
+
+            // -------------------- Start Date from Request Parameter --------------------
+
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate startDate,
+
+            // -------------------- End Date from Request Parameter --------------------
+
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)     //Spring request parameter ni LocalDate ga parse cheyyadaniki ISO date format use chesthundi.
+            LocalDate endDate) {
+
+        log.info("Received request to fetch orders between {} and {}", startDate, endDate);
+
+        // -------------------- Step 1 : Call Service Layer --------------------
+
+        List<OrderResponse> response = orderService.getOrdersBetweenDates(startDate, endDate);
+
+        log.info("Successfully fetched orders between {} and {}", startDate, endDate);
+
+        // -------------------- Step 2 : Return Response --------------------
+
+        return ResponseEntity.ok(response);
+    }
+
 
 }

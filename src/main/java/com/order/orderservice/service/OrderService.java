@@ -3,7 +3,9 @@ package com.order.orderservice.service;
 import com.order.orderservice.dto.OrderRequest;
 import com.order.orderservice.dto.OrderResponse;
 import com.order.orderservice.enums.OrderStatus;
+import com.order.orderservice.enums.PaymentStatus;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface OrderService {
@@ -55,6 +57,19 @@ public interface OrderService {
 
     List<OrderResponse> getOrdersByOrderStatus(OrderStatus orderStatus);
 
+    // ==========================
+// Get Orders By Payment Status
+// ==========================
+
+    List<OrderResponse> getOrdersByPaymentStatus(PaymentStatus paymentStatus);
+
+
+
+    // ==========================
+    // Get Orders Between Two Dates
+    // ==========================
+
+    List<OrderResponse> getOrdersBetweenDates(LocalDate startDate, LocalDate endDate);
 
 
 }
