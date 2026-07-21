@@ -205,7 +205,71 @@ public class OrderController {
     }
 
 
-    // ===========================================
+
+
+    // ==========================================================
+// Get Product Orders With Pagination + Sorting
+// ==========================================================
+    @GetMapping("/product/{productId}")
+    public ResponseEntity<PageResponse<OrderResponse>> getOrdersByProductId(
+
+            // ==========================================================
+            // Product ID From URL
+            // ==========================================================
+            @PathVariable Long productId,
+
+            // ==========================================================
+            // Current Page Number
+            // Default = 0
+            // ==========================================================
+            @RequestParam(defaultValue = "0") int page,
+
+            // ==========================================================
+            // Records Per Page
+            // Default = 5
+            // ==========================================================
+            @RequestParam(defaultValue = "5") int size,
+
+            // ==========================================================
+            // Sort Field
+            // Default = id
+            // ==========================================================
+            @RequestParam(defaultValue = "id") String sortBy,
+
+            // ==========================================================
+            // Sort Direction
+            // Default = ASC
+            // ==========================================================
+            @RequestParam(defaultValue = "ASC") String direction) {
+
+        // ==========================================================
+        // Log Incoming Request
+        // ==========================================================
+        log.info("Received request to fetch orders for product ID : {}", productId);
+
+        // ==========================================================
+        // Call Service Layer
+        // ==========================================================
+        PageResponse<OrderResponse> response =
+                orderService.getOrdersByProductId(
+                        productId,
+                        page,
+                        size,
+                        sortBy,
+                        direction);
+
+        // ==========================================================
+        // Log Success
+        // ==========================================================
+        log.info("Successfully fetched product orders for product ID : {}", productId);
+
+        // ==========================================================
+        // Return Response
+        // ==========================================================
+        return ResponseEntity.ok(response);
+    }
+
+   /* // ===========================================
 // Get Orders By Product ID
 // ===========================================
 
@@ -226,7 +290,7 @@ public class OrderController {
         // Return HTTP 200 OK with response body
         return ResponseEntity.ok(response);
     }
-
+*/
     // ==========================================================
 // Get Customer Orders With Pagination + Sorting
 // ==========================================================

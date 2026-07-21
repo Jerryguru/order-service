@@ -455,7 +455,91 @@ public class OrderServiceImpl implements OrderService {
     }
 */
 
-    // ==========================
+
+    // ==========================================================
+// Get Product Orders With Pagination + Sorting
+// ==========================================================
+    @Override
+    public PageResponse<OrderResponse> getOrdersByProductId(
+            Long productId,
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
+
+        // ==========================================================
+        // Log Incoming Request
+        // ==========================================================
+        log.info("Fetching orders for product ID : {}", productId);
+
+        // ==========================================================
+        // Convert ASC / DESC Into Sort Direction
+        // ==========================================================
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+
+        // ==========================================================
+        // Create Sort Object
+        // ==========================================================
+        Sort sort = Sort.by(sortDirection, sortBy);
+
+        // ==========================================================
+        // Create Pageable Object
+        // ==========================================================
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // ==========================================================
+        // Fetch Orders By Product ID
+        // ==========================================================
+        Page<Order> orderPage = orderRepository.findByProductId(productId, pageable);
+
+        // ==========================================================
+        // Throw Exception If No Orders Found
+        // ==========================================================
+        if (orderPage.isEmpty()) {
+
+            throw new OrderNotFoundException("No orders found for product ID : " + productId);
+        }
+
+        // ==========================================================
+        // Convert Entity List Into DTO List
+        // ==========================================================
+        List<OrderResponse> orderResponses =
+                orderPage.getContent()
+                        .stream()
+                        .map(this::mapToResponse)
+                        .toList();
+
+        // ==========================================================
+        // Log Success
+        // ==========================================================
+        log.info("Successfully fetched {} orders for product ID : {}",
+                orderResponses.size(), productId);
+
+        // ==========================================================
+        // Prepare Pagination Response
+        // ==========================================================
+        PageResponse<OrderResponse> response = new PageResponse<>();
+
+        // ==========================================================
+        // Set Response Data
+        // ==========================================================
+        response.setContent(orderResponses);
+        response.setPage(orderPage.getNumber());
+        response.setSize(orderPage.getSize());
+        response.setTotalElements(orderPage.getTotalElements());
+        response.setTotalPages(orderPage.getTotalPages());
+        response.setFirst(orderPage.isFirst());
+        response.setLast(orderPage.isLast());
+
+        // ==========================================================
+        // Return Response
+        // ==========================================================
+        return response;
+    }
+
+
+
+   /* // ==========================
 // Get Orders By Product ID
 // ==========================
 
@@ -492,7 +576,7 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
-
+*/
 // ==========================
 // Get Orders By Order Status
 // ==========================

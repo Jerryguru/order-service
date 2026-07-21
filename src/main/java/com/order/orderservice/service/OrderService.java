@@ -81,11 +81,23 @@ public interface OrderService {
             String direction
     );
 
-    // ==========================
+    // ==========================================================
+// Get Product Orders With Pagination + Sorting
+// ==========================================================
+    PageResponse<OrderResponse> getOrdersByProductId(
+            Long productId,
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    );
+
+
+   /* // ==========================
     // Get Orders By Product ID
     // ==========================
 
-    List<OrderResponse> getOrdersByProductId(Long productId);
+    List<OrderResponse> getOrdersByProductId(Long productId);*/
 
 
     // ==========================
