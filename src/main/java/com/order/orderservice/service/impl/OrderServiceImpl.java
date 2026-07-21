@@ -11,9 +11,11 @@ import com.order.orderservice.service.OrderService;
 import org.springframework.data.domain.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -75,22 +77,33 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
-    public Page<OrderResponse> getAllOrders(int page, int size) {
+    public Page<OrderResponse> getAllOrders(int page, int size,String sortBy,String direction) {
 
         // ==========================================================
-        // Log the incoming pagination request
+        // Log the incoming pagination and sorting request
         // ==========================================================
-        log.info("Received request to fetch all orders | Page : {} | Size : {}", page, size);
+        log.info("Received request to fetch all orders | Page : {} | Size : {} | Sort By : Price | Direction : ASC",
+                page, size);
 
         // ==========================================================
-        // Create Pageable object
+        // Create Sort Object
+        // Sort records by Price in Ascending Order
+        // ASC = Small to Large
+        // ==========================================================
+        Sort sort = Sort.by(Sort.Direction.ASC, "price");
+
+        // ==========================================================
+        // Create Pageable Object
+        // Pagination + Sorting
         // page -> Current page number
         // size -> Number of records per page
+        // sort -> Sort by Price (Ascending)
         // ==========================================================
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, sort);
 
         // ==========================================================
         // Fetch only the required page from database
+        // along with sorting
         // ==========================================================
         Page<Order> orderPage = orderRepository.findAll(pageable);
 
@@ -104,12 +117,12 @@ public class OrderServiceImpl implements OrderService {
         // ==========================================================
         // Log successful execution
         // ==========================================================
-        log.info("Successfully fetched page {} with {} records",
+        log.info("Successfully fetched page {} with {} records sorted by Price in Ascending Order",
                 page,
                 responsePage.getNumberOfElements());
 
         // ==========================================================
-        // Return paginated response
+        // Return paginated and sorted response
         // ==========================================================
         return responsePage;
     }

@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
 import java.util.List;
+import org.springframework.data.domain.Sort;
 
 public interface OrderService {
 
@@ -23,7 +24,22 @@ public interface OrderService {
 
     // page -> Which page should be fetched
 // size -> Number of records per page
-    Page<OrderResponse> getAllOrders(int page, int size);
+   // Page<OrderResponse> getAllOrders(int page, int size);
+    // ==========================================================
+// Get All Orders With Pagination And Sorting
+// ==========================================================
+//
+// page      -> Current page number
+// size      -> Number of records per page
+// sortBy    -> Entity field used for sorting
+// direction -> ASC or DESC
+//
+// ==========================================================
+
+    Page<OrderResponse> getAllOrders(int page,
+                                     int size,
+                                     String sortBy,
+                                     String direction);
 
     // Get Order By ID
     OrderResponse getOrderById(Long id);

@@ -45,9 +45,8 @@ public class OrderController {
         return ResponseEntity.ok(response);
 
     }
-
-    // ==========================
-// Get All Orders With Pagination
+// ==========================
+// Get All Orders With Pagination And Sorting
 // ==========================
 
     @GetMapping
@@ -59,20 +58,38 @@ public class OrderController {
 
             // Number of records per page
             // Default value = 10
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
 
-        // Log incoming request
-        log.info("Received request to fetch orders | Page : {} | Size : {}", page, size);
+            // Sort Field
+            // Default value = id
+            @RequestParam(defaultValue = "id") String sortBy,
 
+            // Sort Direction
+            // Default value = ASC
+            @RequestParam(defaultValue = "ASC") String direction) {
+
+        // ==========================================================
+        // Log Incoming Request
+        // ==========================================================
+        log.info("Received request to fetch orders | Page : {} | Size : {} | Sort By : {} | Direction : {}",
+                page, size, sortBy, direction);
+
+        // ==========================================================
         // Call Service Layer
-        Page<OrderResponse> response = orderService.getAllOrders(page, size);
+        // ==========================================================
+        Page<OrderResponse> response =
+                orderService.getAllOrders(page, size, sortBy, direction);
 
-        // Log success
+        // ==========================================================
+        // Log Success
+        // ==========================================================
         log.info("Successfully fetched page {} with {} records",
                 page,
                 response.getNumberOfElements());
 
-        // Return paginated response
+        // ==========================================================
+        // Return Response
+        // ==========================================================
         return ResponseEntity.ok(response);
     }
 
