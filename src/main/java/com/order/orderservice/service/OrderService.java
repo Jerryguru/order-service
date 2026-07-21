@@ -100,11 +100,27 @@ public interface OrderService {
     List<OrderResponse> getOrdersByProductId(Long productId);*/
 
 
-    // ==========================
+
+
+    // ==========================================================
+    // Get Orders By Order Status With Pagination + Sorting
+    // ==========================================================
+    PageResponse<OrderResponse> getOrdersByOrderStatus(
+            OrderStatus orderStatus,
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    );
+
+    /*// ==========================
     // Get Orders By Order Status
     // ==========================
 
-    List<OrderResponse> getOrdersByOrderStatus(OrderStatus orderStatus);
+    List<OrderResponse> getOrdersByOrderStatus(OrderStatus orderStatus);*/
+
+
+
 
     // ==========================
 // Get Orders By Payment Status

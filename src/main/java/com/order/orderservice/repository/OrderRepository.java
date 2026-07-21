@@ -52,11 +52,21 @@ public interface OrderRepository extends JpaRepository< Order,Long > {   //Order
     List<Order> findByProductId(Long productId);*/
 
 
-    // ==========================
+    // ==========================================================
+    // Fetch Orders By Order Status With Pagination + Sorting
+    // ==========================================================
+    Page<Order> findByOrderStatus(
+            OrderStatus orderStatus,
+            Pageable pageable
+    );
+
+   /* // ==========================
     // Get Orders By Order Status
     // ==========================
 
-    List<Order> findByOrderStatus(OrderStatus orderStatus);
+    List<Order> findByOrderStatus(OrderStatus orderStatus);*/
+
+
 
     // ==========================
     // Get Orders By Payment Status

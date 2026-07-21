@@ -370,7 +370,7 @@ public class OrderController {
 */
 
 
-    // ==========================
+   /* // ==========================
 // Get Orders By Order Status
 // ==========================
 
@@ -392,6 +392,59 @@ public class OrderController {
         // Return HTTP 200 OK along with list of orders
         return ResponseEntity.ok(response);
     }
+*/
+   // ==========================================================
+// Get Orders By Order Status With Pagination + Sorting
+// ==========================================================
+   @GetMapping("/status/{orderStatus}")
+   public ResponseEntity<PageResponse<OrderResponse>> getOrdersByOrderStatus(
+
+           // ==========================================================
+           // Read Order Status From URL
+           // Example : /orders/status/DELIVERED
+           // ==========================================================
+           @PathVariable OrderStatus orderStatus,
+
+           // ==========================================================
+           // Pagination Parameters
+           // ==========================================================
+           @RequestParam(defaultValue = "0") int page,
+
+           @RequestParam(defaultValue = "5") int size,
+
+           // ==========================================================
+           // Sorting Parameters
+           // ==========================================================
+           @RequestParam(defaultValue = "id") String sortBy,
+
+           @RequestParam(defaultValue = "ASC") String direction) {
+
+       // ==========================================================
+       // Log Incoming Request
+       // ==========================================================
+       log.info("Received request to fetch orders with status : {}", orderStatus);
+
+       // ==========================================================
+       // Call Service Layer
+       // ==========================================================
+       PageResponse<OrderResponse> response =
+               orderService.getOrdersByOrderStatus(
+                       orderStatus,
+                       page,
+                       size,
+                       sortBy,
+                       direction);
+
+       // ==========================================================
+       // Log Success
+       // ==========================================================
+       log.info("Successfully fetched orders with status : {}", orderStatus);
+
+       // ==========================================================
+       // Return Response
+       // ==========================================================
+       return ResponseEntity.ok(response);
+   }
 
 
     // ==========================

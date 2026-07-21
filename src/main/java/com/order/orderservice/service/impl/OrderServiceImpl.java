@@ -576,7 +576,11 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
-*/
+
+
+
+
+*//*
 // ==========================
 // Get Orders By Order Status
 // ==========================
@@ -608,8 +612,95 @@ public class OrderServiceImpl implements OrderService {
         return responseList;
     }
 
+*/
 
 
+    // ==========================================================
+// Get Orders By Order Status With Pagination + Sorting
+// ==========================================================
+    @Override
+    public PageResponse<OrderResponse> getOrdersByOrderStatus(
+            OrderStatus orderStatus,
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
+
+        // ==========================================================
+        // Log Request
+        // ==========================================================
+        log.info("Fetching orders with status : {}", orderStatus);
+
+        // ==========================================================
+        // Convert String Direction to Sort.Direction
+        // ==========================================================
+        Sort.Direction sortDirection =
+                Sort.Direction.fromString(direction);
+
+        // ==========================================================
+        // Create Sort Object
+        // ==========================================================
+        Sort sort =
+                Sort.by(sortDirection, sortBy);
+
+        // ==========================================================
+        // Create Pageable Object
+        // ==========================================================
+        Pageable pageable =
+                PageRequest.of(page, size, sort);
+
+        // ==========================================================
+        // Fetch Orders From Database
+        // ==========================================================
+        Page<Order> orderPage =
+                orderRepository.findByOrderStatus(orderStatus, pageable);
+
+        // ==========================================================
+        // Validate Result
+        // ==========================================================
+        if (orderPage.isEmpty()) {
+
+            log.error("No orders found with status : {}", orderStatus);
+
+            throw new OrderNotFoundException(
+                    "No orders found with status : " + orderStatus);
+        }
+
+        // ==========================================================
+        // Convert Entity List to DTO List
+        // ==========================================================
+        List<OrderResponse> orderResponses =
+                orderPage.getContent()
+                        .stream()
+                        .map(this::mapToResponse)
+                        .toList();
+
+        // ==========================================================
+        // Prepare Pagination Response
+        // ==========================================================
+        PageResponse<OrderResponse> response =
+                new PageResponse<>();
+
+        response.setContent(orderResponses);
+        response.setPage(orderPage.getNumber());
+        response.setSize(orderPage.getSize());
+        response.setTotalPages(orderPage.getTotalPages());
+        response.setTotalElements(orderPage.getTotalElements());
+        response.setFirst(orderPage.isFirst());
+        response.setLast(orderPage.isLast());
+
+        // ==========================================================
+        // Success Log
+        // ==========================================================
+        log.info("Successfully fetched {} orders with status : {}",
+                orderResponses.size(),
+                orderStatus);
+
+        // ==========================================================
+        // Return Response
+        // ==========================================================
+        return response;
+    }
     // ==========================
     // Get Orders By Payment Status
     // ==========================
