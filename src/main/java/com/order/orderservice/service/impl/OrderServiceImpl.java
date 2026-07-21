@@ -8,19 +8,22 @@ import com.order.orderservice.enums.PaymentStatus;
 import com.order.orderservice.exception.OrderNotFoundException;
 import com.order.orderservice.repository.OrderRepository;
 import com.order.orderservice.service.OrderService;
+import org.springframework.data.domain.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.LocalDateTime;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+
 import java.util.List;
 
-import static org.springframework.context.annotation.ConfigurationClassUtils.getOrder;
+
 
 @Service
 @RequiredArgsConstructor
@@ -66,9 +69,51 @@ public class OrderServiceImpl implements OrderService {
 
 
 
+
     // -------------------- Get All Orders --------------------
 
+
+
     @Override
+    public Page<OrderResponse> getAllOrders(int page, int size) {
+
+        // ==========================================================
+        // Log the incoming pagination request
+        // ==========================================================
+        log.info("Received request to fetch all orders | Page : {} | Size : {}", page, size);
+
+        // ==========================================================
+        // Create Pageable object
+        // page -> Current page number
+        // size -> Number of records per page
+        // ==========================================================
+        Pageable pageable = PageRequest.of(page, size);
+
+        // ==========================================================
+        // Fetch only the required page from database
+        // ==========================================================
+        Page<Order> orderPage = orderRepository.findAll(pageable);
+
+        // ==========================================================
+        // Convert Page<Order> into Page<OrderResponse>
+        // map() automatically converts each Order object
+        // into OrderResponse
+        // ==========================================================
+        Page<OrderResponse> responsePage = orderPage.map(this::mapToResponse);
+
+        // ==========================================================
+        // Log successful execution
+        // ==========================================================
+        log.info("Successfully fetched page {} with {} records",
+                page,
+                responsePage.getNumberOfElements());
+
+        // ==========================================================
+        // Return paginated response
+        // ==========================================================
+        return responsePage;
+    }
+   /* @Override
     public List<OrderResponse> getAllOrders() {
 
         log.info("Received request to fetch all orders");
@@ -95,9 +140,9 @@ public class OrderServiceImpl implements OrderService {
 
         log.info("Returning {} orders", responses.size());
 
-        return responses;
+        return responses;}*/
 
-    }
+
 
 
 
@@ -522,7 +567,6 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
     }
-
 }
 
 
@@ -589,272 +633,3 @@ public class OrderServiceImpl implements OrderService {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-package com.order.orderservice.service.impl;
-
-// OrderServiceImpl (Business Logic Layer) We Provide  Business Logics Here
-
-import com.order.orderservice.dto.OrderRequest;
-import com.order.orderservice.dto.OrderResponse;
-import com.order.orderservice.entity.Order;
-import com.order.orderservice.repository.OrderRepository;
-import com.order.orderservice.service.OrderService;
-import org.springframework.stereotype.Service;
-
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-@Service            //@Service -->tells Spring that this class contains business logic and should be managed as a Spring Bean.
-public class OrderServiceImpl implements OrderService {
-
-    private final OrderRepository orderRepository;
-
-    public OrderServiceImpl(OrderRepository orderRepository){
-        this.orderRepository=orderRepository;
-    }
-
-
-  */
-/*
-  * @Override //"This method is implementing (or overriding)
-  *  an existing method from a parent class or interface."
-  * *//*
-
-
-    // -------------------- CreateOrder --------------------
-
-    @Override   //This method is implementing the method declared in the OrderService interface.
-    public OrderResponse createOrder(OrderRequest request) {
-        // -------------------- Step 1 : Create Order Entity --------------------
-
-        Order order = new Order();
-
-        // -------------------- Step 2 : Map Request DTO to Entity --------------------
-
-        order.setOrderNumber(request.getOrderNumber());
-
-        order.setCustomerId(request.getCustomerId());
-
-        order.setProductId(request.getProductId());
-
-        order.setQuantity(request.getQuantity());
-
-        order.setPrice(request.getPrice());
-
-        order.setTotalAmount(request.getTotalAmount());
-
-        order.setOrderStatus(request.getOrderStatus());
-
-        order.setPaymentStatus(request.getPaymentStatus());
-
-        order.setOrderDate(request.getOrderDate());
-
-        order.setCreateDate(LocalDateTime.now());
-
-        order.setUpdateDate(LocalDateTime.now());
-
-
-        // -------------------- Step 3 : Save Entity into Database --------------------
-
-        Order savedOrder = orderRepository.save(order);    //save() stores an entity in the database.
-
-        // -------------------- Step 4 : Map Saved Entity to Response DTO --------------------
-
-        OrderResponse response = new OrderResponse();    //We created Response Object Because to send a JSON For Client ,We should never return Entity directly to the client.
-
-        response.setId(savedOrder.getId());
-
-        response.setOrderNumber(savedOrder.getOrderNumber());
-
-        response.setCustomerId(savedOrder.getCustomerId());
-
-        response.setProductId(savedOrder.getProductId());
-
-        response.setQuantity(savedOrder.getQuantity());
-
-        response.setPrice(savedOrder.getPrice());
-
-        response.setTotalAmount(savedOrder.getTotalAmount());
-
-        response.setOrderStatus(savedOrder.getOrderStatus());
-
-        response.setPaymentStatus(savedOrder.getPaymentStatus());
-
-        response.setOrderDate(savedOrder.getOrderDate());
-
-
-        // -------------------- Step 5 : Return Response DTO --------------------
-
-        return response;
-    }
-
-
-    // -------------------- getAllOrders --------------------
-
-    @Override
-    public List<OrderResponse> getAllOrders() {     //List<OrderResponse> 👉 This method returns multiple OrderResponse objects.
-
-        // -------------------- Step 1 : Fetch All Orders from Database --------------------
-
-        List<Order> orders = orderRepository.findAll();
-
-// -------------------- Step 2 : Create Response DTO List --------------------
-
-        List<OrderResponse> responses = new ArrayList<>();
-
-// -------------------- Step 3 : Convert Entity List to Response DTO List --------------------
-
-        for (Order order : orders) {
-
-            OrderResponse response = new OrderResponse();
-
-            response.setId(order.getId());
-
-            response.setOrderNumber(order.getOrderNumber());
-
-            response.setCustomerId(order.getCustomerId());
-
-            response.setProductId(order.getProductId());
-
-            response.setQuantity(order.getQuantity());
-
-            response.setPrice(order.getPrice());
-
-            response.setTotalAmount(order.getTotalAmount());
-
-            response.setOrderStatus(order.getOrderStatus());
-
-            response.setPaymentStatus(order.getPaymentStatus());
-
-            response.setOrderDate(order.getOrderDate());
-
-            response.setCreateDate(order.getCreateDate());
-
-            response.setUpdateDate(order.getUpdateDate());
-
-            responses.add(response);
-        }
-
-// -------------------- Step 4 : Return Response DTO List --------------------
-
-        return responses;
-
-
-    }
-
-    // -------------------- getOrderById --------------------
-
-    @Override
-    public OrderResponse getOrderById(Long id) {
-        return null;
-    }
-
-    // -------------------- updateOrder --------------------
-
-    @Override
-    public OrderResponse updateOrder(Long id, OrderRequest request) {
-        return null;
-    }
-
-
-    // -------------------- partialUpdateOrder --------------------
-
-    @Override
-    public OrderResponse partialUpdateOrder(Long id, OrderRequest request) {
-        return null;
-    }
-
-    // -------------------- deleteOrder --------------------
-
-
-
-    @Override
-    public String deleteOrder(Long id) {
-        return "";
-    }
-}
-*/

@@ -14,6 +14,12 @@ import java.util.Optional;
 @Repository
 public interface OrderRepository extends JpaRepository< Order,Long > {   //Order-->Order Entity,Long-->Primary Key
 
+    // ==========================================================
+    // NOTE:
+    // JpaRepository already provides CRUD Operations
+    // and Pagination support.
+    //
+
     // ==========================
     // Get Order By Order Number
     // ==========================

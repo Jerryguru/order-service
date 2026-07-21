@@ -4,6 +4,7 @@ import com.order.orderservice.dto.OrderRequest;
 import com.order.orderservice.dto.OrderResponse;
 import com.order.orderservice.enums.OrderStatus;
 import com.order.orderservice.enums.PaymentStatus;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,8 +14,16 @@ public interface OrderService {
     // Create Order
     OrderResponse createOrder(OrderRequest request);
 
-    // Get All Orders
-    List<OrderResponse> getAllOrders();
+  // // Get All Orders
+//    List<OrderResponse> getAllOrders();
+
+    // ==========================================================
+// Get All Orders With Pagination
+// ==========================================================
+
+    // page -> Which page should be fetched
+// size -> Number of records per page
+    Page<OrderResponse> getAllOrders(int page, int size);
 
     // Get Order By ID
     OrderResponse getOrderById(Long id);

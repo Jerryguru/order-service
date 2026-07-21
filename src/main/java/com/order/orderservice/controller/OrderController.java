@@ -6,6 +6,7 @@ import com.order.orderservice.enums.OrderStatus;
 import com.order.orderservice.enums.PaymentStatus;
 import com.order.orderservice.service.OrderService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -45,7 +46,37 @@ public class OrderController {
 
     }
 
-    // -------------------- Get All Orders --------------------
+    // ==========================
+// Get All Orders With Pagination
+// ==========================
+
+    @GetMapping
+    public ResponseEntity<Page<OrderResponse>> getAllOrders(
+
+            // Current page number
+            // Default value = 0 (First Page)
+            @RequestParam(defaultValue = "0") int page,
+
+            // Number of records per page
+            // Default value = 10
+            @RequestParam(defaultValue = "10") int size) {
+
+        // Log incoming request
+        log.info("Received request to fetch orders | Page : {} | Size : {}", page, size);
+
+        // Call Service Layer
+        Page<OrderResponse> response = orderService.getAllOrders(page, size);
+
+        // Log success
+        log.info("Successfully fetched page {} with {} records",
+                page,
+                response.getNumberOfElements());
+
+        // Return paginated response
+        return ResponseEntity.ok(response);
+    }
+
+ /*   // -------------------- Get All Orders --------------------
 
     @GetMapping
     public ResponseEntity<List<OrderResponse>> getAllOrders() {
@@ -62,7 +93,7 @@ public class OrderController {
 
         return ResponseEntity.ok(responses);
 
-    }
+    }*/
 
     // -------------------- Get Order By ID --------------------
 
