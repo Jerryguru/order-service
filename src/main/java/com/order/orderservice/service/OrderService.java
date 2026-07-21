@@ -122,12 +122,24 @@ public interface OrderService {
 
 
 
-    // ==========================
+   /* // ==========================
 // Get Orders By Payment Status
 // ==========================
 
-    List<OrderResponse> getOrdersByPaymentStatus(PaymentStatus paymentStatus);
+    List<OrderResponse> getOrdersByPaymentStatus(PaymentStatus paymentStatus);*/
 
+
+    // ==========================================================
+// Get Orders By Payment Status
+// Pagination + Sorting
+// ==========================================================
+    PageResponse<OrderResponse> getOrdersByPaymentStatus(
+            PaymentStatus paymentStatus,
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    );
 
 
     // ==========================

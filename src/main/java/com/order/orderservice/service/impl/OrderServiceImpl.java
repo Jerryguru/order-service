@@ -701,7 +701,82 @@ public class OrderServiceImpl implements OrderService {
         // ==========================================================
         return response;
     }
-    // ==========================
+
+
+    // ==========================================================
+// Get Orders By Payment Status
+// Pagination + Sorting
+// ==========================================================
+    @Override
+    public PageResponse<OrderResponse> getOrdersByPaymentStatus(
+            PaymentStatus paymentStatus,
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
+
+        // ==========================================================
+        // Convert ASC / DESC String into Sort.Direction
+        // ==========================================================
+        Sort.Direction sortDirection =
+                Sort.Direction.fromString(direction);
+
+        // ==========================================================
+        // Create Sort Object
+        // ==========================================================
+        Sort sort =
+                Sort.by(sortDirection, sortBy);
+
+        // ==========================================================
+        // Create Pageable Object
+        // Pagination + Sorting
+        // ==========================================================
+        Pageable pageable =
+                PageRequest.of(page, size, sort);
+
+        // ==========================================================
+        // Fetch Orders By Payment Status
+        // ==========================================================
+        Page<Order> orderPage =
+                orderRepository.findByPaymentStatus(
+                        paymentStatus,
+                        pageable
+                );
+
+        // ==========================================================
+        // Convert Entity List into Response DTO List
+        // ==========================================================
+        List<OrderResponse> orders =
+                orderPage.getContent()
+                        .stream()
+                        .map(this::mapToResponse)
+                        .toList();
+
+        // ==========================================================
+        // Return Pagination Response
+        // ==========================================================
+        return new PageResponse<>(
+
+                orders,
+
+                orderPage.getNumber(),
+
+                orderPage.getSize(),
+
+                orderPage.getTotalElements(),
+
+                orderPage.getTotalPages(),
+
+                orderPage.isFirst(),
+
+                orderPage.isLast()
+
+        );
+
+    }
+
+
+    /*// ==========================
     // Get Orders By Payment Status
     // ==========================
 
@@ -729,7 +804,7 @@ public class OrderServiceImpl implements OrderService {
 
         return responseList;
     }
-
+*/
     // ==========================
     // Get Orders Between Two Dates
     // ==========================

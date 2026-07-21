@@ -447,6 +447,54 @@ public class OrderController {
    }
 
 
+    // ==========================================================
+// Get Orders By Payment Status
+// Pagination + Sorting
+// ==========================================================
+    @GetMapping("/payment-status/{paymentStatus}/pagination-sorting")
+    public PageResponse<OrderResponse> getOrdersByPaymentStatus(
+
+            @PathVariable PaymentStatus paymentStatus,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "ASC") String direction
+
+    ) {
+
+        // ==========================================================
+        // Log Incoming Request
+        // ==========================================================
+        log.info("Fetching Orders | PaymentStatus={} | Page={} | Size={} | SortBy={} | Direction={}",
+                paymentStatus,
+                page,
+                size,
+                sortBy,
+                direction
+        );
+
+        // ==========================================================
+        // Call Service Layer
+        // ==========================================================
+        PageResponse<OrderResponse> response =
+                orderService.getOrdersByPaymentStatus(
+                        paymentStatus,
+                        page,
+                        size,
+                        sortBy,
+                        direction
+                );
+
+        // ==========================================================
+        // Success Log
+        // ==========================================================
+        log.info("Orders Retrieved Successfully");
+
+        return response;
+    }
+
+
+/*
     // ==========================
 // Get Orders By Payment Status
 // ==========================
@@ -469,6 +517,7 @@ public class OrderController {
         // Return HTTP 200 OK along with list of orders
         return ResponseEntity.ok(response);
     }
+*/
 
     // ==========================
 // Get Orders Between Two Dates
