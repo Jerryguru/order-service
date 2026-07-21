@@ -519,7 +519,7 @@ public class OrderController {
     }
 */
 
-    // ==========================
+   /* // ==========================
 // Get Orders Between Two Dates
 // ==========================
 
@@ -549,6 +549,56 @@ public class OrderController {
         // -------------------- Step 2 : Return Response --------------------
 
         return ResponseEntity.ok(response);
+    }
+
+*/
+
+
+    // ==========================================================
+// Get Orders Between Date Range
+// Pagination + Sorting
+// ==========================================================
+    @GetMapping("/date-range/pagination-sorting")
+    public PageResponse<OrderResponse> getOrdersBetweenDates(
+
+            // Start Date
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate startDate,
+
+            // End Date
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate endDate,
+
+            // Page Number (Default = 0)
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            // Records Per Page (Default = 5)
+            @RequestParam(defaultValue = "5")
+            int size,
+
+            // Sort Field (Default = id)
+            @RequestParam(defaultValue = "id")
+            String sortBy,
+
+            // Sort Direction (Default = ASC)
+            @RequestParam(defaultValue = "ASC")
+            String direction
+
+    ) {
+
+        // Call Service Layer
+        return orderService.getOrdersBetweenDates(
+                startDate,
+                endDate,
+                page,
+                size,
+                sortBy,
+                direction
+        );
+
     }
 
 

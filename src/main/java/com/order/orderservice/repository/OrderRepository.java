@@ -82,6 +82,17 @@ public interface OrderRepository extends JpaRepository< Order,Long > {   //Order
 
     List<Order> findByPaymentStatus(PaymentStatus paymentStatus);*/
 
+
+    // ==========================================================
+// Date Range + Pagination + Sorting
+// ==========================================================
+    Page<Order> findByOrderDateBetween(
+            LocalDate startDate,
+            LocalDate endDate,
+            Pageable pageable
+    );
+/*
+
 // ==========================
 // Get Orders Between Two Dates
 // ==========================
@@ -89,6 +100,7 @@ public interface OrderRepository extends JpaRepository< Order,Long > {   //Order
     List<Order> findByOrderDateBetween(LocalDateTime startDate,
                                        LocalDateTime endDate);
 
+*/
 
 
  /*   // ==========================

@@ -142,11 +142,24 @@ public interface OrderService {
     );
 
 
-    // ==========================
+    /*// ==========================
     // Get Orders Between Two Dates
     // ==========================
 
-    List<OrderResponse> getOrdersBetweenDates(LocalDate startDate, LocalDate endDate);
+    List<OrderResponse> getOrdersBetweenDates(LocalDate startDate, LocalDate endDate);*/
+
+    // ==========================================================
+// Get Orders Between Date Range
+// Pagination + Sorting
+// ==========================================================
+    PageResponse<OrderResponse> getOrdersBetweenDates(
+            LocalDate startDate,
+            LocalDate endDate,
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    );
 
 
     // ==========================

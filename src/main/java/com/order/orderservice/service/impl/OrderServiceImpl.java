@@ -805,7 +805,9 @@ public class OrderServiceImpl implements OrderService {
         return responseList;
     }
 */
-    // ==========================
+
+
+    /*// ==========================
     // Get Orders Between Two Dates
     // ==========================
 
@@ -841,8 +843,82 @@ public class OrderServiceImpl implements OrderService {
                 responseList.size(), startDate, endDate);
 
         return responseList;
-    }
+    }*/
 
+
+    // ==========================================================
+// Get Orders Between Date Range
+// Pagination + Sorting
+// ==========================================================
+    @Override
+    public PageResponse<OrderResponse> getOrdersBetweenDates(
+            LocalDate startDate,
+            LocalDate endDate,
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
+
+        // ==========================================================
+        // Convert ASC / DESC String into Sort.Direction
+        // ==========================================================
+        Sort.Direction sortDirection =
+                Sort.Direction.fromString(direction);
+
+        // ==========================================================
+        // Create Sort Object
+        // ==========================================================
+        Sort sort =
+                Sort.by(sortDirection, sortBy);
+
+        // ==========================================================
+        // Create Pageable Object
+        // Pagination + Sorting
+        // ==========================================================
+        Pageable pageable =
+                PageRequest.of(page, size, sort);
+
+        // ==========================================================
+        // Fetch Orders Between Date Range
+        // ==========================================================
+        Page<Order> orderPage =
+                orderRepository.findByOrderDateBetween(
+                        startDate,
+                        endDate,
+                        pageable
+                );
+
+        // ==========================================================
+        // Convert Entity List into Response DTO List
+        // ==========================================================
+        List<OrderResponse> orders =
+                orderPage.getContent()
+                        .stream()
+                        .map(this::mapToResponse)
+                        .toList();
+
+        // ==========================================================
+        // Return Pagination Response
+        // ==========================================================
+        return new PageResponse<>(
+
+                orders,
+
+                orderPage.getNumber(),
+
+                orderPage.getSize(),
+
+                orderPage.getTotalElements(),
+
+                orderPage.getTotalPages(),
+
+                orderPage.isFirst(),
+
+                orderPage.isLast()
+
+        );
+
+    }
 
     // ==========================
     // Get Today's Orders
