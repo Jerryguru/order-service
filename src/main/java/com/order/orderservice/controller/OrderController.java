@@ -2,6 +2,7 @@ package com.order.orderservice.controller;
 
 import com.order.orderservice.dto.OrderRequest;
 import com.order.orderservice.dto.OrderResponse;
+import com.order.orderservice.dto.PageResponse;
 import com.order.orderservice.enums.OrderStatus;
 import com.order.orderservice.enums.PaymentStatus;
 import com.order.orderservice.service.OrderService;
@@ -226,9 +227,63 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
+    // ==========================================================
+// Get Customer Orders With Pagination + Sorting
+// ==========================================================
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<PageResponse<OrderResponse>> getOrdersByCustomerId(
 
+            // ==========================================================
+            // Customer ID From URL
+            // ==========================================================
+            @PathVariable Long customerId,
 
-    // ==========================
+            // ==========================================================
+            // Current Page Number
+            // Default = 0
+            // ==========================================================
+            @RequestParam(defaultValue = "0") int page,
+
+            // ==========================================================
+            // Number Of Records Per Page
+            // Default = 5
+            // ==========================================================
+            @RequestParam(defaultValue = "5") int size,
+
+            // ==========================================================
+            // Sort Field
+            // Default = id
+            // ==========================================================
+            @RequestParam(defaultValue = "id") String sortBy,
+
+            // ==========================================================
+            // Sort Direction
+            // Default = ASC
+            // ==========================================================
+            @RequestParam(defaultValue = "ASC") String direction) {
+
+        log.info("Received request to fetch customer orders. Customer ID : {}", customerId);
+
+        // ==========================================================
+        // Call Service Layer
+        // ==========================================================
+        PageResponse<OrderResponse> response =
+                orderService.getOrdersByCustomerId(
+                        customerId,
+                        page,
+                        size,
+                        sortBy,
+                        direction);
+
+        log.info("Successfully fetched customer orders. Customer ID : {}", customerId);
+
+        // ==========================================================
+        // Return Response
+        // ==========================================================
+        return ResponseEntity.ok(response);
+    }
+
+   /* // ==========================
 // Get Orders By Customer ID
 // ==========================
 
@@ -248,7 +303,7 @@ public class OrderController {
         return ResponseEntity.ok(response);
 
     }
-
+*/
 
 
     // ==========================

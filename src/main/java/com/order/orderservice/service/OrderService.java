@@ -5,6 +5,7 @@ import com.order.orderservice.dto.OrderResponse;
 import com.order.orderservice.enums.OrderStatus;
 import com.order.orderservice.enums.PaymentStatus;
 import org.springframework.data.domain.Page;
+import com.order.orderservice.dto.PageResponse;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -62,12 +63,23 @@ public interface OrderService {
     OrderResponse getOrderByOrderNumber(String orderNumber);
 
 
-    // ==========================
+ /*   // ==========================
     // Get Orders By Customer ID
     // ==========================
 
-    List<OrderResponse> getOrdersByCustomerId(Long customerId);
+    List<OrderResponse> getOrdersByCustomerId(Long customerId);*/
 
+
+    // ==========================================================
+// Get Customer Orders With Pagination + Sorting
+// ==========================================================
+    PageResponse<OrderResponse> getOrdersByCustomerId(
+            Long customerId,
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    );
 
     // ==========================
     // Get Orders By Product ID

@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 
 import org.springframework.data.domain.PageRequest;
+import com.order.orderservice.dto.PageResponse;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -331,7 +332,94 @@ public class OrderServiceImpl implements OrderService {
 
 
 
-          // ==========================
+    // ==========================================================
+// Get Customer Orders With Pagination + Sorting
+// ==========================================================
+    @Override
+    public PageResponse<OrderResponse> getOrdersByCustomerId(
+            Long customerId,
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
+
+        // ==========================================================
+        // Log Incoming Request
+        // ==========================================================
+        log.info(
+                "Fetching customer orders. Customer ID : {}, Page : {}, Size : {}, Sort By : {}, Direction : {}",
+                customerId, page, size, sortBy, direction);
+
+        // ==========================================================
+        // Convert ASC / DESC Into Sort Direction
+        // ==========================================================
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+
+        // ==========================================================
+        // Create Sort Object
+        // ==========================================================
+        Sort sort = Sort.by(sortDirection, sortBy);
+
+        // ==========================================================
+        // Create Pageable Object
+        // ==========================================================
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // ==========================================================
+        // Fetch Customer Orders
+        // ==========================================================
+        Page<Order> orderPage = orderRepository.findByCustomerId(customerId, pageable);
+
+        // ==========================================================
+        // Throw Exception If No Orders Found
+        // ==========================================================
+        if (orderPage.isEmpty()) {
+
+            log.warn("No orders found for customer ID : {}", customerId);
+
+            throw new OrderNotFoundException(
+                    "No orders found for customer ID : " + customerId);
+        }
+
+        // ==========================================================
+        // Log Successful Fetch
+        // ==========================================================
+        log.info(
+                "Successfully fetched {} orders for customer ID : {}",
+                orderPage.getNumberOfElements(),
+                customerId);
+
+        // ==========================================================
+// Convert Entity List Into DTO List
+// ==========================================================
+        List<OrderResponse> orderResponses = orderPage.getContent()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+
+// ==========================================================
+// Prepare Pagination Response
+// ==========================================================
+        PageResponse<OrderResponse> response = new PageResponse<>();
+
+// ==========================================================
+// Set Response Data
+// ==========================================================
+        response.setContent(orderResponses);
+        response.setPage(orderPage.getNumber());
+        response.setSize(orderPage.getSize());
+        response.setTotalElements(orderPage.getTotalElements());
+        response.setTotalPages(orderPage.getTotalPages());
+        response.setFirst(orderPage.isFirst());
+        response.setLast(orderPage.isLast());
+
+// ==========================================================
+// Return Response
+// ==========================================================
+        return response;
+    }
+
+         /* // ==========================
          // Get Orders By Customer ID
     // ==========================
 
@@ -365,7 +453,7 @@ public class OrderServiceImpl implements OrderService {
 
         return response;
     }
-
+*/
 
     // ==========================
 // Get Orders By Product ID
