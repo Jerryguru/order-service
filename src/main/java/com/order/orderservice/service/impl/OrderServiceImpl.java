@@ -2,6 +2,1623 @@ package com.order.orderservice.service.impl;
 
 import com.order.orderservice.dto.OrderRequest;
 import com.order.orderservice.dto.OrderResponse;
+import com.order.orderservice.dto.PageResponse;
+import com.order.orderservice.entity.Order;
+import com.order.orderservice.enums.OrderStatus;
+import com.order.orderservice.enums.PaymentStatus;
+import com.order.orderservice.exception.OrderNotFoundException;
+import com.order.orderservice.repository.OrderRepository;
+import com.order.orderservice.service.OrderService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+
+/**
+ * ==========================================================
+ * Order Service Implementation
+ * ----------------------------------------------------------
+ * Handles all business logic related to Order Management.
+ * ==========================================================
+ */
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class OrderServiceImpl implements OrderService {
+
+    // ==========================================================
+    // Repository Dependency
+    // ==========================================================
+    private final OrderRepository orderRepository;
+
+    // ==========================================================
+    // Fetch Order By ID
+    // Internal Helper Method
+    // ==========================================================
+    private Order getOrder(Long id) {
+
+        log.debug("Fetching order from database. Order ID : {}", id);
+
+        return orderRepository.findById(id)
+                .orElseThrow(() -> {
+
+                    log.error("Order not found with ID : {}", id);
+
+                    return new OrderNotFoundException(
+                            "Order not found with ID : " + id);
+                });
+    }
+
+    // ==========================================================
+    // Convert Entity To Response DTO
+    // ==========================================================
+    private OrderResponse mapToResponse(Order order) {
+
+        return OrderResponse.builder()
+                .id(order.getId())
+                .orderNumber(order.getOrderNumber())
+                .customerId(order.getCustomerId())
+                .productId(order.getProductId())
+                .quantity(order.getQuantity())
+                .price(order.getPrice())
+                .totalAmount(order.getTotalAmount())
+                .orderStatus(order.getOrderStatus())
+                .paymentStatus(order.getPaymentStatus())
+                .orderDate(order.getOrderDate())
+                .createdDate(order.getCreatedDate())
+                .updatedDate(order.getUpdatedDate())
+                .build();
+    }
+
+    // ==========================================================
+    // Create Order
+    // ==========================================================
+    @Override
+    public OrderResponse createOrder(OrderRequest request) {
+
+        log.info(
+                "Received request to create order : {}",
+                request.getOrderNumber());
+
+        // ------------------------------------------------------
+        // Create Order Entity
+        // ------------------------------------------------------
+        Order order = Order.builder()
+                .orderNumber(request.getOrderNumber())
+                .customerId(request.getCustomerId())
+                .productId(request.getProductId())
+                .quantity(request.getQuantity())
+                .price(request.getPrice())
+                .totalAmount(request.getTotalAmount())
+                .orderStatus(request.getOrderStatus())
+                .paymentStatus(request.getPaymentStatus())
+                .orderDate(request.getOrderDate())
+                .createdDate(LocalDateTime.now())
+                .updatedDate(LocalDateTime.now())
+                .build();
+
+        // ------------------------------------------------------
+        // Save Order
+        // ------------------------------------------------------
+        Order savedOrder = orderRepository.save(order);
+
+        log.info(
+                "Order created successfully with ID : {}",
+                savedOrder.getId());
+
+        // ------------------------------------------------------
+        // Convert Entity To DTO
+        // ------------------------------------------------------
+        return mapToResponse(savedOrder);
+    }
+    // ==========================================================
+    // Get All Orders
+    // Pagination + Sorting
+    // ==========================================================
+    @Override
+    public PageResponse<OrderResponse> getAllOrders(
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
+
+        // ==========================================================
+        // Log Incoming Request
+        // ==========================================================
+        log.info(
+                "Fetching all orders | Page : {} | Size : {} | Sort By : {} | Direction : {}",
+                page,
+                size,
+                sortBy,
+                direction);
+
+        // ==========================================================
+        // Convert String Direction into Sort.Direction
+        // ==========================================================
+        Sort.Direction sortDirection =
+                Sort.Direction.fromString(direction);
+
+        // ==========================================================
+        // Create Sort Object
+        // ==========================================================
+        Sort sort =
+                Sort.by(sortDirection, sortBy);
+
+        // ==========================================================
+        // Create Pageable Object
+        // ==========================================================
+        Pageable pageable =
+                PageRequest.of(page, size, sort);
+
+        // ==========================================================
+        // Fetch Orders From Database
+        // ==========================================================
+        Page<Order> orderPage =
+                orderRepository.findAll(pageable);
+
+        // ==========================================================
+        // Convert Entity List into Response DTO List
+        // ==========================================================
+        List<OrderResponse> orderResponses =
+                orderPage.getContent()
+                        .stream()
+                        .map(this::mapToResponse)
+                        .toList();
+
+        // ==========================================================
+        // Prepare Pagination Response
+        // ==========================================================
+        PageResponse<OrderResponse> response =
+                new PageResponse<>();
+
+        response.setContent(orderResponses);
+        response.setPage(orderPage.getNumber());
+        response.setSize(orderPage.getSize());
+        response.setTotalElements(orderPage.getTotalElements());
+        response.setTotalPages(orderPage.getTotalPages());
+        response.setFirst(orderPage.isFirst());
+        response.setLast(orderPage.isLast());
+
+        // ==========================================================
+        // Success Log
+        // ==========================================================
+        log.info(
+                "Successfully fetched {} orders from page {}",
+                orderResponses.size(),
+                page);
+
+        // ==========================================================
+        // Return Pagination Response
+        // ==========================================================
+        return response;
+    }
+    // ==========================================================
+    // Get Order By ID
+    // ==========================================================
+    @Override
+    public OrderResponse getOrderById(Long id) {
+
+        // ==========================================================
+        // Log Incoming Request
+        // ==========================================================
+        log.info("Received request to fetch order with ID : {}", id);
+
+        // ==========================================================
+        // Fetch Order From Database
+        // ==========================================================
+        Order order = getOrder(id);
+
+        // ==========================================================
+        // Convert Entity To Response DTO
+        // ==========================================================
+        OrderResponse response = mapToResponse(order);
+
+        // ==========================================================
+        // Success Log
+        // ==========================================================
+        log.info("Successfully fetched order with ID : {}", id);
+
+        // ==========================================================
+        // Return Response
+        // ==========================================================
+        return response;
+    }
+
+    // ==========================================================
+    // Update Order
+    // Complete Update
+    // ==========================================================
+    @Override
+    public OrderResponse updateOrder(Long id, OrderRequest request) {
+
+        // ==========================================================
+        // Log Incoming Request
+        // ==========================================================
+        log.info("Updating order with ID : {}", id);
+
+        // ==========================================================
+        // Fetch Existing Order
+        // ==========================================================
+        Order order = getOrder(id);
+
+        // ==========================================================
+        // Update Order Details
+        // ==========================================================
+        order.setOrderNumber(request.getOrderNumber());
+        order.setCustomerId(request.getCustomerId());
+        order.setProductId(request.getProductId());
+        order.setQuantity(request.getQuantity());
+        order.setPrice(request.getPrice());
+
+        // ==========================================================
+        // Recalculate Total Amount
+        // ==========================================================
+        order.setTotalAmount(
+                request.getQuantity() * request.getPrice());
+
+        order.setOrderStatus(request.getOrderStatus());
+        order.setPaymentStatus(request.getPaymentStatus());
+        order.setOrderDate(request.getOrderDate());
+        order.setUpdatedDate(LocalDateTime.now());
+
+        // ==========================================================
+        // Save Updated Order
+        // ==========================================================
+        Order updatedOrder =
+                orderRepository.save(order);
+
+        // ==========================================================
+        // Success Log
+        // ==========================================================
+        log.info(
+                "Order updated successfully with ID : {}",
+                updatedOrder.getId());
+
+        // ==========================================================
+        // Return Response
+        // ==========================================================
+        return mapToResponse(updatedOrder);
+    }
+
+    // ==========================================================
+    // Partial Update Order
+    // ==========================================================
+    @Override
+    public OrderResponse partialUpdateOrder(
+            Long id,
+            OrderRequest request) {
+
+        // ==========================================================
+        // Log Incoming Request
+        // ==========================================================
+        log.info(
+                "Partially updating order with ID : {}",
+                id);
+
+        // ==========================================================
+        // Fetch Existing Order
+        // ==========================================================
+        Order order = getOrder(id);
+
+        // ==========================================================
+        // Update Only Available Fields
+        // ==========================================================
+        if (request.getOrderNumber() != null) {
+            order.setOrderNumber(request.getOrderNumber());
+        }
+
+        if (request.getCustomerId() != null) {
+            order.setCustomerId(request.getCustomerId());
+        }
+
+        if (request.getProductId() != null) {
+            order.setProductId(request.getProductId());
+        }
+
+        if (request.getQuantity() != null) {
+            order.setQuantity(request.getQuantity());
+        }
+
+        if (request.getPrice() != null) {
+            order.setPrice(request.getPrice());
+        }
+
+        if (request.getOrderStatus() != null) {
+            order.setOrderStatus(request.getOrderStatus());
+        }
+
+        if (request.getPaymentStatus() != null) {
+            order.setPaymentStatus(request.getPaymentStatus());
+        }
+
+        if (request.getOrderDate() != null) {
+            order.setOrderDate(request.getOrderDate());
+        }
+
+        // ==========================================================
+        // Recalculate Total Amount
+        // ==========================================================
+        if (order.getQuantity() != null &&
+                order.getPrice() != null) {
+
+            order.setTotalAmount(
+                    order.getQuantity() * order.getPrice());
+        }
+
+        order.setUpdatedDate(LocalDateTime.now());
+
+        // ==========================================================
+        // Save Updated Order
+        // ==========================================================
+        Order updatedOrder =
+                orderRepository.save(order);
+
+        // ==========================================================
+        // Success Log
+        // ==========================================================
+        log.info(
+                "Order partially updated successfully with ID : {}",
+                updatedOrder.getId());
+
+        // ==========================================================
+        // Return Response
+        // ==========================================================
+        return mapToResponse(updatedOrder);
+    }
+
+    // ==========================================================
+    // Delete Order
+    // ==========================================================
+    @Override
+    public void deleteOrder(Long id) {
+
+        // ==========================================================
+        // Log Incoming Request
+        // ==========================================================
+        log.info("Deleting order with ID : {}", id);
+
+        // ==========================================================
+        // Fetch Existing Order
+        // ==========================================================
+        Order order = getOrder(id);
+
+        // ==========================================================
+        // Delete Order
+        // ==========================================================
+        orderRepository.delete(order);
+
+        // ==========================================================
+        // Success Log
+        // ==========================================================
+        log.info(
+                "Order deleted successfully with ID : {}",
+                id);
+    }
+    // ==========================================================
+    // Get Order By Order Number
+    // ==========================================================
+    @Override
+    public OrderResponse getOrderByOrderNumber(String orderNumber) {
+
+        // ==========================================================
+        // Log Incoming Request
+        // ==========================================================
+        log.info(
+                "Received request to fetch order with Order Number : {}",
+                orderNumber);
+
+        // ==========================================================
+        // Fetch Order From Database
+        // ==========================================================
+        Order order = orderRepository
+                .findByOrderNumber(orderNumber)
+                .orElseThrow(() -> {
+
+                    log.error(
+                            "Order not found with Order Number : {}",
+                            orderNumber);
+
+                    return new OrderNotFoundException(
+                            "Order not found with Order Number : "
+                                    + orderNumber);
+                });
+
+        // ==========================================================
+        // Success Log
+        // ==========================================================
+        log.info(
+                "Successfully fetched order with Order Number : {}",
+                orderNumber);
+
+        // ==========================================================
+        // Return Response
+        // ==========================================================
+        return mapToResponse(order);
+    }
+
+    // ==========================================================
+    // Get Orders By Customer ID
+    // Pagination + Sorting
+    // ==========================================================
+    @Override
+    public PageResponse<OrderResponse> getOrdersByCustomerId(
+
+            Long customerId,
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
+
+        // ==========================================================
+        // Log Incoming Request
+        // ==========================================================
+        log.info(
+                "Fetching orders for Customer ID : {}",
+                customerId);
+
+        // ==========================================================
+        // Create Sort Direction
+        // ==========================================================
+        Sort.Direction sortDirection =
+                Sort.Direction.fromString(direction);
+
+        // ==========================================================
+        // Create Sort Object
+        // ==========================================================
+        Sort sort =
+                Sort.by(sortDirection, sortBy);
+
+        // ==========================================================
+        // Create Pageable Object
+        // ==========================================================
+        Pageable pageable =
+                PageRequest.of(page, size, sort);
+
+        // ==========================================================
+        // Fetch Orders
+        // ==========================================================
+        Page<Order> orderPage =
+                orderRepository.findByCustomerId(
+                        customerId,
+                        pageable);
+
+        // ==========================================================
+        // Validate Result
+        // ==========================================================
+        if (orderPage.isEmpty()) {
+
+            log.error(
+                    "No orders found for Customer ID : {}",
+                    customerId);
+
+            throw new OrderNotFoundException(
+                    "No orders found for Customer ID : "
+                            + customerId);
+        }
+
+        // ==========================================================
+        // Convert Entity List To DTO List
+        // ==========================================================
+        List<OrderResponse> orderResponses =
+                orderPage.getContent()
+                        .stream()
+                        .map(this::mapToResponse)
+                        .toList();
+
+        // ==========================================================
+        // Prepare Pagination Response
+        // ==========================================================
+        PageResponse<OrderResponse> response =
+                new PageResponse<>();
+
+        response.setContent(orderResponses);
+        response.setPage(orderPage.getNumber());
+        response.setSize(orderPage.getSize());
+        response.setTotalElements(orderPage.getTotalElements());
+        response.setTotalPages(orderPage.getTotalPages());
+        response.setFirst(orderPage.isFirst());
+        response.setLast(orderPage.isLast());
+
+        // ==========================================================
+        // Success Log
+        // ==========================================================
+        log.info(
+                "Successfully fetched {} orders for Customer ID : {}",
+                orderResponses.size(),
+                customerId);
+
+        // ==========================================================
+        // Return Response
+        // ==========================================================
+        return response;
+    }
+
+    // ==========================================================
+    // Get Orders By Product ID
+    // Pagination + Sorting
+    // ==========================================================
+    @Override
+    public PageResponse<OrderResponse> getOrdersByProductId(
+
+            Long productId,
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
+
+        // ==========================================================
+        // Log Incoming Request
+        // ==========================================================
+        log.info(
+                "Fetching orders for Product ID : {}",
+                productId);
+
+        // ==========================================================
+        // Create Sort Direction
+        // ==========================================================
+        Sort.Direction sortDirection =
+                Sort.Direction.fromString(direction);
+
+        // ==========================================================
+        // Create Sort Object
+        // ==========================================================
+        Sort sort =
+                Sort.by(sortDirection, sortBy);
+
+        // ==========================================================
+        // Create Pageable Object
+        // ==========================================================
+        Pageable pageable =
+                PageRequest.of(page, size, sort);
+
+        // ==========================================================
+        // Fetch Orders
+        // ==========================================================
+        Page<Order> orderPage =
+                orderRepository.findByProductId(
+                        productId,
+                        pageable);
+
+        // ==========================================================
+        // Validate Result
+        // ==========================================================
+        if (orderPage.isEmpty()) {
+
+            log.error(
+                    "No orders found for Product ID : {}",
+                    productId);
+
+            throw new OrderNotFoundException(
+                    "No orders found for Product ID : "
+                            + productId);
+        }
+
+        // ==========================================================
+        // Convert Entity List To DTO List
+        // ==========================================================
+        List<OrderResponse> orderResponses =
+                orderPage.getContent()
+                        .stream()
+                        .map(this::mapToResponse)
+                        .toList();
+
+        // ==========================================================
+        // Prepare Pagination Response
+        // ==========================================================
+        PageResponse<OrderResponse> response =
+                new PageResponse<>();
+
+        response.setContent(orderResponses);
+        response.setPage(orderPage.getNumber());
+        response.setSize(orderPage.getSize());
+        response.setTotalElements(orderPage.getTotalElements());
+        response.setTotalPages(orderPage.getTotalPages());
+        response.setFirst(orderPage.isFirst());
+        response.setLast(orderPage.isLast());
+
+        // ==========================================================
+        // Success Log
+        // ==========================================================
+        log.info(
+                "Successfully fetched {} orders for Product ID : {}",
+                orderResponses.size(),
+                productId);
+
+        // ==========================================================
+        // Return Response
+        // ==========================================================
+        return response;
+    }
+    // ==========================================================
+    // Get Orders By Order Status
+    // Pagination + Sorting
+    // ==========================================================
+    @Override
+    public PageResponse<OrderResponse> getOrdersByOrderStatus(
+            OrderStatus orderStatus,
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
+
+        log.info("Fetching orders with Status : {}", orderStatus);
+
+        Sort.Direction sortDirection =
+                Sort.Direction.fromString(direction);
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(sortDirection, sortBy));
+
+        Page<Order> orderPage =
+                orderRepository.findByOrderStatus(
+                        orderStatus,
+                        pageable);
+
+        if (orderPage.isEmpty()) {
+
+            log.error(
+                    "No orders found with Status : {}",
+                    orderStatus);
+
+            throw new OrderNotFoundException(
+                    "No orders found with Status : " + orderStatus);
+        }
+
+        List<OrderResponse> orderResponses =
+                orderPage.getContent()
+                        .stream()
+                        .map(this::mapToResponse)
+                        .toList();
+
+        PageResponse<OrderResponse> response =
+                new PageResponse<>();
+
+        response.setContent(orderResponses);
+        response.setPage(orderPage.getNumber());
+        response.setSize(orderPage.getSize());
+        response.setTotalElements(orderPage.getTotalElements());
+        response.setTotalPages(orderPage.getTotalPages());
+        response.setFirst(orderPage.isFirst());
+        response.setLast(orderPage.isLast());
+
+        log.info(
+                "Successfully fetched {} orders with Status : {}",
+                orderResponses.size(),
+                orderStatus);
+
+        return response;
+    }
+
+    // ==========================================================
+    // Get Orders By Payment Status
+    // Pagination + Sorting
+    // ==========================================================
+    @Override
+    public PageResponse<OrderResponse> getOrdersByPaymentStatus(
+            PaymentStatus paymentStatus,
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
+
+        log.info(
+                "Fetching orders with Payment Status : {}",
+                paymentStatus);
+
+        Sort.Direction sortDirection =
+                Sort.Direction.fromString(direction);
+
+        Pageable pageable =
+                PageRequest.of(
+                        page,
+                        size,
+                        Sort.by(sortDirection, sortBy));
+
+        Page<Order> orderPage =
+                orderRepository.findByPaymentStatus(
+                        paymentStatus,
+                        pageable);
+
+        if (orderPage.isEmpty()) {
+
+            log.error(
+                    "No orders found with Payment Status : {}",
+                    paymentStatus);
+
+            throw new OrderNotFoundException(
+                    "No orders found with Payment Status : "
+                            + paymentStatus);
+        }
+
+        List<OrderResponse> orderResponses =
+                orderPage.getContent()
+                        .stream()
+                        .map(this::mapToResponse)
+                        .toList();
+
+        PageResponse<OrderResponse> response =
+                new PageResponse<>();
+
+        response.setContent(orderResponses);
+        response.setPage(orderPage.getNumber());
+        response.setSize(orderPage.getSize());
+        response.setTotalElements(orderPage.getTotalElements());
+        response.setTotalPages(orderPage.getTotalPages());
+        response.setFirst(orderPage.isFirst());
+        response.setLast(orderPage.isLast());
+
+        log.info(
+                "Successfully fetched {} orders with Payment Status : {}",
+                orderResponses.size(),
+                paymentStatus);
+
+        return response;
+    }
+
+    // ==========================================================
+// Get Orders Between Date Range
+// Pagination + Sorting
+// ==========================================================
+    @Override
+    public PageResponse<OrderResponse> getOrdersBetweenDates(
+            LocalDate startDate,
+            LocalDate endDate,
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
+
+        log.info(
+                "Fetching orders between {} and {}",
+                startDate,
+                endDate);
+
+        Sort.Direction sortDirection =
+                Sort.Direction.fromString(direction);
+
+        Pageable pageable =
+                PageRequest.of(
+                        page,
+                        size,
+                        Sort.by(sortDirection, sortBy));
+
+        // ----------------------------
+        // Convert LocalDate to LocalDateTime
+        // ----------------------------
+
+        LocalDateTime startDateTime =
+                startDate.atStartOfDay();
+
+        LocalDateTime endDateTime =
+                endDate.atTime(LocalTime.MAX);
+
+        Page<Order> orderPage =
+                orderRepository.findByOrderDateBetween(
+                        startDateTime,
+                        endDateTime,
+                        pageable);
+
+        List<OrderResponse> orderResponses =
+                orderPage.getContent()
+                        .stream()
+                        .map(this::mapToResponse)
+                        .toList();
+
+        PageResponse<OrderResponse> response =
+                new PageResponse<>();
+
+        response.setContent(orderResponses);
+        response.setPage(orderPage.getNumber());
+        response.setSize(orderPage.getSize());
+        response.setTotalElements(orderPage.getTotalElements());
+        response.setTotalPages(orderPage.getTotalPages());
+        response.setFirst(orderPage.isFirst());
+        response.setLast(orderPage.isLast());
+
+        log.info(
+                "Successfully fetched {} orders.",
+                orderResponses.size());
+
+        return response;
+    }
+
+    // ==========================================================
+    // Get Today's Orders
+    // ==========================================================
+    @Override
+    public List<OrderResponse> getTodayOrders() {
+
+        log.info("Received request to fetch today's orders.");
+
+        LocalDate today = LocalDate.now();
+
+        LocalDateTime startDateTime =
+                today.atStartOfDay();
+
+        LocalDateTime endDateTime =
+                today.atTime(LocalTime.MAX);
+
+        List<Order> orders =
+                orderRepository.findByOrderDateBetween(
+                        startDateTime,
+                        endDateTime);
+
+        if (orders.isEmpty()) {
+
+            log.error("No orders found for today.");
+
+            throw new OrderNotFoundException(
+                    "No orders found for today.");
+        }
+
+        List<OrderResponse> responseList =
+                orders.stream()
+                        .map(this::mapToResponse)
+                        .toList();
+
+        log.info(
+                "Successfully fetched {} today's orders.",
+                responseList.size());
+
+        return responseList;
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+package com.order.orderservice.service.impl;
+
+import com.order.orderservice.dto.OrderRequest;
+import com.order.orderservice.dto.OrderResponse;
 import com.order.orderservice.entity.Order;
 import com.order.orderservice.enums.OrderStatus;
 import com.order.orderservice.enums.PaymentStatus;
@@ -78,7 +1695,7 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
-    public Page<OrderResponse> getAllOrders(int page, int size,String sortBy,String direction) {
+    public PageResponse<OrderResponse> getAllOrders(int page, int size,String sortBy,String direction) {
 
         // ==========================================================
         // Log the incoming pagination and sorting request
@@ -125,9 +1742,13 @@ public class OrderServiceImpl implements OrderService {
         // ==========================================================
         // Return paginated and sorted response
         // ==========================================================
-        return responsePage;
+        return respons;
     }
-   /* @Override
+
+
+
+   */
+/* @Override
     public List<OrderResponse> getAllOrders() {
 
         log.info("Received request to fetch all orders");
@@ -154,7 +1775,8 @@ public class OrderServiceImpl implements OrderService {
 
         log.info("Returning {} orders", responses.size());
 
-        return responses;}*/
+        return responses;}*//*
+
 
 
 
@@ -419,7 +2041,8 @@ public class OrderServiceImpl implements OrderService {
         return response;
     }
 
-         /* // ==========================
+         */
+/* // ==========================
          // Get Orders By Customer ID
     // ==========================
 
@@ -453,7 +2076,8 @@ public class OrderServiceImpl implements OrderService {
 
         return response;
     }
-*/
+*//*
+
 
 
     // ==========================================================
@@ -539,7 +2163,8 @@ public class OrderServiceImpl implements OrderService {
 
 
 
-   /* // ==========================
+   */
+/* // ==========================
 // Get Orders By Product ID
 // ==========================
 
@@ -581,6 +2206,8 @@ public class OrderServiceImpl implements OrderService {
 
 
 *//*
+*/
+/*
 // ==========================
 // Get Orders By Order Status
 // ==========================
@@ -612,7 +2239,8 @@ public class OrderServiceImpl implements OrderService {
         return responseList;
     }
 
-*/
+*//*
+
 
 
     // ==========================================================
@@ -776,7 +2404,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-    /*// ==========================
+    */
+/*//*
+/ ==========================
     // Get Orders By Payment Status
     // ==========================
 
@@ -804,10 +2434,13 @@ public class OrderServiceImpl implements OrderService {
 
         return responseList;
     }
-*/
+*//*
 
 
-    /*// ==========================
+
+    */
+/*//*
+/ ==========================
     // Get Orders Between Two Dates
     // ==========================
 
@@ -843,7 +2476,8 @@ public class OrderServiceImpl implements OrderService {
                 responseList.size(), startDate, endDate);
 
         return responseList;
-    }*/
+    }*//*
+
 
 
     // ==========================================================
@@ -1060,3 +2694,4 @@ public class OrderServiceImpl implements OrderService {
 
 
 
+*/

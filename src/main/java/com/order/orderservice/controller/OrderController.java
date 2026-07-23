@@ -1,3 +1,736 @@
+
+package com.order.orderservice.controller;
+
+import com.order.orderservice.dto.OrderRequest;
+import com.order.orderservice.dto.OrderResponse;
+import com.order.orderservice.enums.OrderStatus;
+import com.order.orderservice.enums.PaymentStatus;
+import com.order.orderservice.service.OrderService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import com.order.orderservice.dto.PageResponse;
+
+import java.time.LocalDate;
+import java.util.List;
+
+// ==========================================================
+// Order Controller
+//
+// Handles all REST API requests related to Orders.
+// ==========================================================
+@Slf4j
+@RestController
+@RequestMapping("/orders")
+public class OrderController {
+
+    // ==========================================================
+    // Service Dependency
+    // ==========================================================
+    private final OrderService orderService;
+
+    // ==========================================================
+    // Constructor Injection
+    // ==========================================================
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    // ==========================================================
+    // Create Order
+    // ==========================================================
+    @PostMapping
+    public ResponseEntity<OrderResponse> createOrder(
+            @RequestBody OrderRequest request) {
+
+        log.info("Received request to create order with Order Number : {}",
+                request.getOrderNumber());
+
+        // Call Service Layer
+        OrderResponse response = orderService.createOrder(request);
+
+        log.info("Order created successfully with ID : {}",
+                response.getId());
+
+        // Return Response
+        return ResponseEntity.ok(response);
+    }
+
+    // ==========================================================
+    // Get All Orders
+    // Pagination + Sorting
+    // ==========================================================
+    @GetMapping
+    public ResponseEntity<PageResponse<OrderResponse>> getAllOrders(
+
+            @RequestParam(defaultValue = "0") int page,
+
+            @RequestParam(defaultValue = "10") int size,
+
+            @RequestParam(defaultValue = "id") String sortBy,
+
+            @RequestParam(defaultValue = "ASC") String direction) {
+
+        // Log Incoming Request
+        log.info(
+                "Received request to fetch orders | Page : {} | Size : {} | Sort By : {} | Direction : {}",
+                page,
+                size,
+                sortBy,
+                direction);
+
+        // Call Service Layer
+        PageResponse<OrderResponse> response =
+                orderService.getAllOrders(
+                        page,
+                        size,
+                        sortBy,
+                        direction);
+
+        // Success Log
+        log.info(
+                "Successfully fetched page {} with {} records",
+                page,
+                response.getContent().size());
+
+        // Return Response
+        return ResponseEntity.ok(response);
+    }
+
+    // ==========================================================
+    // Get Order By ID
+    // ==========================================================
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderResponse> getOrderById(
+            @PathVariable Long id) {
+
+        log.info("Received request to fetch order with ID : {}", id);
+
+        // Call Service Layer
+        OrderResponse response =
+                orderService.getOrderById(id);
+
+        log.info("Successfully fetched order with ID : {}", id);
+
+        // Return Response
+        return ResponseEntity.ok(response);
+    }
+
+    // ==========================================================
+    // Update Order
+    // ==========================================================
+    @PutMapping("/{id}")
+    public ResponseEntity<OrderResponse> updateOrder(
+
+            @PathVariable Long id,
+
+            @RequestBody OrderRequest request) {
+
+        log.info("Received request to update order with ID : {}", id);
+
+        // Call Service Layer
+        OrderResponse response =
+                orderService.updateOrder(id, request);
+
+        log.info("Successfully updated order with ID : {}", id);
+
+        // Return Response
+        return ResponseEntity.ok(response);
+    }
+
+    // ==========================================================
+    // Partial Update Order
+    // ==========================================================
+    @PatchMapping("/{id}")
+    public ResponseEntity<OrderResponse> partialUpdateOrder(
+
+            @PathVariable Long id,
+
+            @RequestBody OrderRequest request) {
+
+        log.info("Received request to partially update order with ID : {}", id);
+
+        // Call Service Layer
+        OrderResponse response =
+                orderService.partialUpdateOrder(id, request);
+
+        log.info("Successfully partially updated order with ID : {}", id);
+
+        // Return Response
+        return ResponseEntity.ok(response);
+    }
+
+    // ==========================================================
+    // Delete Order
+    // ==========================================================
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteOrder(
+            @PathVariable Long id) {
+
+        log.info("Received request to delete order with ID : {}", id);
+
+        // Call Service Layer
+        orderService.deleteOrder(id);
+
+        log.info("Successfully deleted order with ID : {}", id);
+
+        // Return Success Response
+        return ResponseEntity.ok("Order deleted successfully.");
+    }
+
+    // ==========================================================
+    // Get Order By Order Number
+    // ==========================================================
+    @GetMapping("/order-number/{orderNumber}")
+    public ResponseEntity<OrderResponse> getOrderByOrderNumber(
+            @PathVariable String orderNumber) {
+
+        // Log Incoming Request
+        log.info("Received request to fetch order with Order Number : {}",
+                orderNumber);
+
+        // Call Service Layer
+        OrderResponse response =
+                orderService.getOrderByOrderNumber(orderNumber);
+
+        // Success Log
+        log.info("Successfully fetched order with Order Number : {}",
+                orderNumber);
+
+        // Return Response
+        return ResponseEntity.ok(response);
+    }
+
+    // ==========================================================
+    // Get Orders By Product ID
+    // Pagination + Sorting
+    // ==========================================================
+    @GetMapping("/product/{productId}")
+    public ResponseEntity<PageResponse<OrderResponse>> getOrdersByProductId(
+
+            @PathVariable Long productId,
+
+            @RequestParam(defaultValue = "0") int page,
+
+            @RequestParam(defaultValue = "5") int size,
+
+            @RequestParam(defaultValue = "id") String sortBy,
+
+            @RequestParam(defaultValue = "ASC") String direction) {
+
+        // Log Incoming Request
+        log.info(
+                "Received request to fetch orders for Product ID : {}",
+                productId);
+
+        // Call Service Layer
+        PageResponse<OrderResponse> response =
+                orderService.getOrdersByProductId(
+                        productId,
+                        page,
+                        size,
+                        sortBy,
+                        direction);
+
+        // Success Log
+        log.info(
+                "Successfully fetched orders for Product ID : {}",
+                productId);
+
+        // Return Response
+        return ResponseEntity.ok(response);
+    }
+
+    // ==========================================================
+    // Get Orders By Customer ID
+    // Pagination + Sorting
+    // ==========================================================
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<PageResponse<OrderResponse>> getOrdersByCustomerId(
+
+            @PathVariable Long customerId,
+
+            @RequestParam(defaultValue = "0") int page,
+
+            @RequestParam(defaultValue = "5") int size,
+
+            @RequestParam(defaultValue = "id") String sortBy,
+
+            @RequestParam(defaultValue = "ASC") String direction) {
+
+        // Log Incoming Request
+        log.info(
+                "Received request to fetch orders for Customer ID : {}",
+                customerId);
+
+        // Call Service Layer
+        PageResponse<OrderResponse> response =
+                orderService.getOrdersByCustomerId(
+                        customerId,
+                        page,
+                        size,
+                        sortBy,
+                        direction);
+
+        // Success Log
+        log.info(
+                "Successfully fetched orders for Customer ID : {}",
+                customerId);
+
+        // Return Response
+        return ResponseEntity.ok(response);
+    }
+
+    // ==========================================================
+    // Get Orders By Order Status
+    // Pagination + Sorting
+    // ==========================================================
+    @GetMapping("/status/{orderStatus}")
+    public ResponseEntity<PageResponse<OrderResponse>> getOrdersByOrderStatus(
+
+            @PathVariable OrderStatus orderStatus,
+
+            @RequestParam(defaultValue = "0") int page,
+
+            @RequestParam(defaultValue = "5") int size,
+
+            @RequestParam(defaultValue = "id") String sortBy,
+
+            @RequestParam(defaultValue = "ASC") String direction) {
+
+        // Log Incoming Request
+        log.info(
+                "Received request to fetch orders with Status : {}",
+                orderStatus);
+
+        // Call Service Layer
+        PageResponse<OrderResponse> response =
+                orderService.getOrdersByOrderStatus(
+                        orderStatus,
+                        page,
+                        size,
+                        sortBy,
+                        direction);
+
+        // Success Log
+        log.info(
+                "Successfully fetched orders with Status : {}",
+                orderStatus);
+
+        // Return Response
+        return ResponseEntity.ok(response);
+    }
+
+    // ==========================================================
+    // Get Orders By Payment Status
+    // Pagination + Sorting
+    // ==========================================================
+    @GetMapping("/payment-status/{paymentStatus}/pagination-sorting")
+    public PageResponse<OrderResponse> getOrdersByPaymentStatus(
+
+            @PathVariable PaymentStatus paymentStatus,
+
+            @RequestParam(defaultValue = "0") int page,
+
+            @RequestParam(defaultValue = "5") int size,
+
+            @RequestParam(defaultValue = "id") String sortBy,
+
+            @RequestParam(defaultValue = "ASC") String direction) {
+
+        // Log Incoming Request
+        log.info(
+                "Fetching Orders | Payment Status : {} | Page : {} | Size : {} | Sort By : {} | Direction : {}",
+                paymentStatus,
+                page,
+                size,
+                sortBy,
+                direction);
+
+        // Call Service Layer
+        PageResponse<OrderResponse> response =
+                orderService.getOrdersByPaymentStatus(
+                        paymentStatus,
+                        page,
+                        size,
+                        sortBy,
+                        direction);
+
+        // Success Log
+        log.info(
+                "Successfully fetched orders with Payment Status : {}",
+                paymentStatus);
+
+        // Return Response
+        return response;
+    }
+
+    // ==========================================================
+    // Get Orders Between Date Range
+    // Pagination + Sorting
+    // ==========================================================
+    @GetMapping("/date-range/pagination-sorting")
+    public PageResponse<OrderResponse> getOrdersBetweenDates(
+
+            // ==========================================================
+            // Start Date
+            // Example : 2026-07-01
+            // ==========================================================
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate startDate,
+
+            // ==========================================================
+            // End Date
+            // Example : 2026-07-31
+            // ==========================================================
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate endDate,
+
+            // ==========================================================
+            // Pagination Parameters
+            // ==========================================================
+            @RequestParam(defaultValue = "0") int page,
+
+            @RequestParam(defaultValue = "5") int size,
+
+            // ==========================================================
+            // Sorting Parameters
+            // ==========================================================
+            @RequestParam(defaultValue = "id") String sortBy,
+
+            @RequestParam(defaultValue = "ASC") String direction) {
+
+        // ==========================================================
+        // Log Incoming Request
+        // ==========================================================
+        log.info(
+                "Fetching orders between {} and {} | Page : {} | Size : {} | Sort By : {} | Direction : {}",
+                startDate,
+                endDate,
+                page,
+                size,
+                sortBy,
+                direction);
+
+        // ==========================================================
+        // Call Service Layer
+        // ==========================================================
+        PageResponse<OrderResponse> response =
+                orderService.getOrdersBetweenDates(
+                        startDate,
+                        endDate,
+                        page,
+                        size,
+                        sortBy,
+                        direction);
+
+        // ==========================================================
+        // Success Log
+        // ==========================================================
+        log.info(
+                "Successfully fetched orders between {} and {}",
+                startDate,
+                endDate);
+
+        // ==========================================================
+        // Return Response
+        // ==========================================================
+        return response;
+    }
+
+    // ==========================================================
+    // Get Today's Orders
+    // ==========================================================
+    @GetMapping("/today")
+    public ResponseEntity<List<OrderResponse>> getTodayOrders() {
+
+        // ==========================================================
+        // Log Incoming Request
+        // ==========================================================
+        log.info("Received request to fetch today's orders.");
+
+        // ==========================================================
+        // Call Service Layer
+        // ==========================================================
+        List<OrderResponse> response =
+                orderService.getTodayOrders();
+
+        // ==========================================================
+        // Success Log
+        // ==========================================================
+        log.info(
+                "Successfully fetched {} today's orders.",
+                response.size());
+
+        // ==========================================================
+        // Return Response
+        // ==========================================================
+        return ResponseEntity.ok(response);
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 package com.order.orderservice.controller;
 
 import com.order.orderservice.dto.OrderRequest;
@@ -94,7 +827,8 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
- /*   // -------------------- Get All Orders --------------------
+ */
+/*   // -------------------- Get All Orders --------------------
 
     @GetMapping
     public ResponseEntity<List<OrderResponse>> getAllOrders() {
@@ -111,7 +845,8 @@ public class OrderController {
 
         return ResponseEntity.ok(responses);
 
-    }*/
+    }*//*
+
 
     // -------------------- Get Order By ID --------------------
 
@@ -269,7 +1004,8 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-   /* // ===========================================
+   */
+/* // ===========================================
 // Get Orders By Product ID
 // ===========================================
 
@@ -290,7 +1026,8 @@ public class OrderController {
         // Return HTTP 200 OK with response body
         return ResponseEntity.ok(response);
     }
-*/
+*//*
+
     // ==========================================================
 // Get Customer Orders With Pagination + Sorting
 // ==========================================================
@@ -347,7 +1084,8 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-   /* // ==========================
+   */
+/* // ==========================
 // Get Orders By Customer ID
 // ==========================
 
@@ -367,10 +1105,12 @@ public class OrderController {
         return ResponseEntity.ok(response);
 
     }
-*/
+*//*
 
 
-   /* // ==========================
+
+   */
+/* // ==========================
 // Get Orders By Order Status
 // ==========================
 
@@ -392,7 +1132,8 @@ public class OrderController {
         // Return HTTP 200 OK along with list of orders
         return ResponseEntity.ok(response);
     }
-*/
+*//*
+
    // ==========================================================
 // Get Orders By Order Status With Pagination + Sorting
 // ==========================================================
@@ -494,6 +1235,7 @@ public class OrderController {
     }
 
 
+*/
 /*
     // ==========================
 // Get Orders By Payment Status
@@ -517,9 +1259,11 @@ public class OrderController {
         // Return HTTP 200 OK along with list of orders
         return ResponseEntity.ok(response);
     }
-*/
+*//*
 
-   /* // ==========================
+
+   */
+/* // ==========================
 // Get Orders Between Two Dates
 // ==========================
 
@@ -551,7 +1295,8 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-*/
+*//*
+
 
 
     // ==========================================================
@@ -624,3 +1369,4 @@ public class OrderController {
     }
 
 }
+*/
